@@ -35,3 +35,47 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Mac Finder file
+.DS_Store
+*/.DS_Store
+
+# C extensions
+*.so
+
+.Python
+env/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+.vscode
+.vscode/*
+*/.vscode/*
+*/.vscode
