@@ -55,17 +55,38 @@ router.get('/submit_task', function(req, res, next){
 });
 
 router.get('/get_resources', function(req, res, next){
-    var result = get_resources(req.body);
+    var result = {
+        isSuccessful:true,
+        names:[]
+    }
+    var resources = get_resources(req.query.type);
+    result.names = resources;
     res.json(result);
 });
 
 router.get('/get_user_task_history', function(req, res, next){
-    var result = get_user_task_history(req.body);
-    res.json(result);
+    try{
+        var user_token = req.query.token;
+
+    }catch( err ){
+        return res.json({
+            isSuccessful:false,
+            error: "Invalid User",
+            tasks:[]
+        });
+    }
+    var result = get_user_task_history(user_token);
+    res.json({
+        isSuccessful:true,
+        tasks:result
+    });
 });
 
 router.get('/search_task', function(req, res, next){
-    var result = search_task(req.body);
+    var result = {
+        isSuccessful:true,
+        tasks:[]
+    }
     res.json(result);
 });
 

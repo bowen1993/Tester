@@ -50,6 +50,18 @@ var get_token_username = function(token){
     return Base64.decode(token);
 }
 
+var get_user_obj = function(username){
+    var user = null;
+    try{
+        var user = UserDao.findOne({
+            username:username
+        });
+    }catch( err ){
+        console.log(err);
+    }
+    return user;
+}
+
 var isUserExists = function(username){
     var users = UserDao.find({
         username:username
@@ -61,5 +73,6 @@ module.exports = {
     registerAction,
     loginAction,
     get_token,
-    get_token_username
+    get_token_username,
+    get_user_obj
 }

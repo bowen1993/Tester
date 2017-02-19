@@ -3,11 +3,13 @@ let config = require('../config');
 let models = require('../models');
 let Resource = models.Resource;
 let ResourceDao = models.ResourceDao;
+let Level = models.Level;
+let LevelDao = models.LevelDao;
 let FHIRServer = models.FHIRServer;
 let FHIRServerDao = models.FHIRServerDao;
 let Task = models.Task;
 let TaskDao = models.TaskDao;
-
+let userAction = require('./userAction');
 var test_type = config.task;
 
 // base64 ecode
@@ -203,66 +205,41 @@ var submit_task = function(req_json){
     return result;
 }
 
-var get_resources = function(req){
-	// var res_type = request.GET.get('type', 0)
-    var res_type = req.params['type'];
-    if (res_type == "") {
-    	res_type = 0;
+var get_resources = function(resource_type){
+    var result = [];
+    var resources = null;
+    if( resource_type == 0 || resource_type === '0' ){
+        resources = ResourceDao.find({});
+    }else{
+        resources = LevelDao.find({});
     }
-    if (res_type == "String"){
-        try{
-            res_type = parseInt(res_type);
-        }
-        catch(err){
-            res_type = 0;
-        }
-    }
-    var result = {
-        'isSuccessful':false,
-        'names':[]
-    }
-    try{
-        var resources = ResourceDao.find({});
+    if( resources ){
         resources.forEach(resource_obj => {
-            result['names'].push({'name':resource_obj.name,'checked':true});
+            result.push({
+                name:resource_obj.name,
+                checked:true
+            });
         });
-        result['isSuccessful'] = true;
     }
-    catch(err){}
     return result;
 }
 
-var get_user_task_history = function(req_json){
-    try{
-        var token = req_json['token'];
+var get_user_task_history = function(user_token){
+    var results = [];
+    var username = userAction.get_token_username(user_token);
+    var user_obj = userAction.get_user_obj(username);   
+    if( user_obj ){
+        var task_list = TaskDao.find({
+            user:user_obj
+        });
+        task_list.forEach( task_obj =>{
+            results.push({
+                task_id: task_obj.id,
+                time: task_obj.create_time.toUTCString()
+            })
+        });
     }
-    catch(err){
-        return {'isSuccessful': false };               
-    }
-    var result = {
-        'isSuccessful': false
-    }
-    if (token){
-        try{
-            var username = extract_username(token);
-            var task_obj_list = TaskDao.find({
-                id:username
-            });
-            var task_list = [];
-            task_obj_list.forEach(task_obj => {
-                var task_id = task_obj.task_id;
-                var task_time = task_obj.create_time;
-                task_list.push({
-                    'task_id':task_id,
-                    'time':task_time.toUTCString()
-                })
-            });
-            result['tasks'] = task_list;
-            result['isSuccessful'] = true;
-        }
-        catch(err){}
-    }
-    return result;
+    return results;
 }
 
 // var search_task = function(req_json){
