@@ -1,22 +1,36 @@
 from mongoengine import *
-import datatime
-from config.config import status_code
+import datetime
+from config import status_code
+
+connect('fhirtest')
 
 class User(Document):
     username = StringField(unique=True, required=True)
     password = StringField(required=True)
-    user_level = IntFiled(required=True, default=0)
+    user_level = IntField(required=True, default=0)
+    meta = {
+        'collection': 'users'
+    }
 
 class FHIRServer(Document):
     name = StringField(required=True, max_length=256)
     url = URLField(required=True)
     access_token = StringField(required=False)
+    meta = {
+        'collection': 'fhirservers'
+    }
 
 class Resource(Document):
     name = StringField(required=True, max_length=256)
+    meta = {
+        'collection': 'resources'
+    }
 
 class Level(Document):
     name = StringField(required=True)
+    meta = {
+        'collection': 'levels'
+    }
 
 class Case(Document):
     code_status = StringField(required=True, max_length=64, choices=status_code.keys())
@@ -24,11 +38,14 @@ class Case(Document):
     description = StringField()
     http_request = StringField()
     http_response = StringField()
-    http_response_status = IntFiled()
+    http_response_status = IntField()
     resource = StringField()
     @property
     def status(self):
         return status_code[self.code_status]
+    meta = {
+        'collection': 'cases'
+    }
 
 class Step(Document):
     name = StringField(required=True)
@@ -39,18 +56,20 @@ class Step(Document):
     @property
     def status(self):
         return status_code[self.code_status]
-
-class TaskParameters(Document):
-    name = StringField(required=True)
-    data_type = StringField()
+    meta = {
+        'collection': 'steps'
+    }
 
 class TaskType(Document):
     name = StringField(required=True)
     task_class = StringField(required=True)
-    parameters = ListField(ReferenceField(TaskParameters))
+    meta = {
+        'collection': 'tasktypes'
+    }
 
 class Task(Document):
-    target_server = ReferenceField(Server, required=False)
+    target_server = ReferenceField(FHIRServer, required=False)
+    task_parameters = StringField()
     language = StringField(required=False, max_length=16)
     task_type = ReferenceField(TaskType, required=True)
     code_status = StringField(required=True, max_length=64, choices=status_code.keys())
@@ -61,6 +80,9 @@ class Task(Document):
     @property
     def status(self):
         return status_code[self.code_status]
+    meta = {
+        'collection': 'tasks'
+    }
 
 class Result(Document):
     task = ReferenceField(Task, required=True)
@@ -69,3 +91,6 @@ class Result(Document):
     @property
     def status(self):
         return status_code[self.code_status]
+    meta = {
+        'collection': 'results'
+    }
