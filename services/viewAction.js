@@ -12,15 +12,6 @@ let TaskDao = models.TaskDao;
 let userAction = require('./userAction');
 var test_type = config.task;
 
-// base64 ecode
-var get_token = function(username){
-    return window.btoa(username);
-}
-
-// base64 ecode
-var extract_username = function(token){
-    return window.btoa(token);
-}
 
 // generate string with length and consist by '0-9 A-Z'
 var random_string_generate = function(length){

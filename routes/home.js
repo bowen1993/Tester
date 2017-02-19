@@ -94,7 +94,7 @@ router.get('/rmatrix', function(req, res, next){
 	// get_resource_matrix
 	// rmatrix 
 	// set JSON type
-	var rmat = rmatrix(req.body.rmatrix);
+	var rmat = rmatrix(req.query.rmatrix);
 	console.log('rmatrix: ', rmat);
 	res.json({
 		links:rmat.links,
