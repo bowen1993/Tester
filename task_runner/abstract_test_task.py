@@ -10,6 +10,7 @@ class abstract_test_task:
     @abstractmethod
     def run(self):
         pass
+        # when run method finished, call runner_obj.notify_completed(self.task_id) to release process pool
 
     @abstractmethod
     def task_status(self):

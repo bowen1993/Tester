@@ -1,6 +1,6 @@
 from .test_tasks import *
 from .tasks import *
-from .DBActions import get_task_configs
+from .DBActions import get_task_object
 import json
 
 class Runner:
@@ -10,7 +10,7 @@ class Runner:
         self.pool_size = pool_size
 
     def __is_pool_full(self):
-        return !self.pool_size != -1 and len(self.processing_tasks) - self.pool_size <= 0
+        return self.pool_size != -1 and len(self.processing_tasks) - self.pool_size <= 0
 
     def __excute_next_task(self):
         if len(self.pendding_tasks) > 0:
@@ -37,11 +37,12 @@ class Runner:
                 self.__excute_next_task()
 
     def __get_task_configs(self, task_id):
-        task_instance = get_task_configs(task_id)
+        task_instance = get_task_object(task_id)
         if task_instance is None:
             return None
         task_config = {
-            'parameters': task_instance.task_parameters
+
+            'parameters': task_instance.task_parameters,
             'task_class': task_instance.task_type.task_class
         }
         return task_config
@@ -62,6 +63,6 @@ class Runner:
 
     def append_new_task(self, task_id):
         self.pendding_tasks.append(task_id)
-        if !self.__is_pool_full():
+        if not self.__is_pool_full():
             self.__excute_next_task()
 

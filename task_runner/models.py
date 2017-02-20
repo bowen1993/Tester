@@ -77,6 +77,7 @@ class Task(Document):
     create_time = DateTimeField(default=datetime.datetime.now)
     user = ReferenceField(User, required=False)
     steps = ListField(ReferenceField(Step))
+    is_processed = BooleanField(default=False)
     @property
     def status(self):
         return status_code[self.code_status]
