@@ -1,6 +1,6 @@
 from mongoengine import *
 import datetime
-from config import status_code
+from .config import status_code
 
 connect('fhirtest')
 
