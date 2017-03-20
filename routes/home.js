@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var serverAction = require('../services/serverAction');
+var taskAction = require('../services/taskAction');
 var matrixAction = require('../services/matrixAction');
 var viewAction = require('../services/viewAction');
 
@@ -48,10 +49,24 @@ router.post('/deleteServer', function(req, res, next) {
     });
 })
 /**/
-router.get('/submit_task', function(req, res, next){
-	// get code, language, type
-	var result = submit_task(req.body);
-	res.json(result);
+// router.get('/submit_task', function(req, res, next){
+// 	// get code, language, type
+// 	var result = submit_task(req.body);
+// 	res.json(result);
+// });
+
+router.post('/submit_task', function(req, res, next){
+    var raw_task_info = req.body;
+    var processed_task_info = taskAction.pre_process_task_info(raw_task_info);
+    var created_task_id = taskAction.create_new_task(processed_task_info);
+    var result = {
+        task_id:created_task_id,
+        isSuccessful: false
+    }
+    if( created_task_id ){
+        result.isSuccessful = true;
+    }
+    res.json(result);
 });
 
 router.get('/get_resources', function(req, res, next){

@@ -5,3 +5,5 @@ status_code = {
     'S' : 'Success',
     'F' : 'Failed'
 }
+
+jwt_secreat = "conformance"

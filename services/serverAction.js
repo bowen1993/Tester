@@ -44,8 +44,16 @@ var delete_server = function(server_id){
     return isSuccessful;
 }
 
+var get_server_obj = function(server_id){
+    var server = ServerDao.findOne({
+        id:server_id
+    });
+    return server;
+}
+
 module.exports = {
     add_new_server,
     all_servers,
-    delete_server
+    delete_server,
+    get_server_obj
 }

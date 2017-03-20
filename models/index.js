@@ -16,15 +16,33 @@ let session = um.createSession(config.database);
 let User = um.model.createModel('User', {
     username: Text(),
     password: Text(),
-    user_level: Integer()
+    user_level: Integer(),
+});
+
+let ServerAuthScope = um.model.createModel('ServerAuthScope', {
+    name: Text()
+})
+
+let ServerAuthInfo = um.model.createModel('ServerAuthInfo', {
+    client_id: Text(),
+    redirect_uri: Text(),
+    scopes: UObjectArray({
+        type: 'ServerAuthScope'
+    }),
+    auth_url: Text(),
+    token_url: Text()
 });
 
 let FHIRServer = um.model.createModel('FHIRServer', {
     name: Text(),
     url: Text(),
     access_token: Text(),
-    is_delete: Bool(),
-    is_deletable: Bool()
+    is_deleted: Bool(),
+    is_deletable: Bool(),
+    is_auth_required: Bool(),
+    auth_info : UObject({
+        type: 'ServerAuthInfo'
+    })
 });
 
 let Level = um.model.createModel('Level', {
@@ -55,21 +73,28 @@ let Step = um.model.createModel('Step', {
     })
 });
 
+let TaskType = um.model.createModel('Step', {
+    name: Text(),
+    task_class: Text(),
+});
+
 let Task = um.model.createModel('Task', {
     target_server: UObject({
         type: 'Server'
     }),
-    language: Text(),
-    task_type: Text(),
+    task_parameters = Text(),
+    task_type: UObject({
+        type: 'TaskType'
+    }),
     code_status: Text(),
-    code: Text(),
     create_time : DateTime(),
     user: UObject({
         type: 'User'
     }),
     steps: UObjectArray({
         type: 'Step'
-    })
+    }),
+    is_processed:Bool()
 });
 
 let Result = um.model.createModel('Result', {
@@ -90,6 +115,8 @@ let CaseDao = session.getDao(Case);
 let StepDao = session.getDao(Step);
 let TaskDao = session.getDao(Task);
 let ResultDao = session.getDao(Result);
+let ServerAuthInfoDao = session.getDao(ServerAuthInfo);
+let ServerAuthScopeDao = session.getDao(ServerAuthScope);
 
 module.exports = {
     User,
@@ -99,7 +126,10 @@ module.exports = {
     Case,
     Step,
     Task,
+    TaskType,
     Result,
+    ServerAuthInfo,
+    ServerAuthScope,
     UserDao,
     FHIRServerDao,
     ResourceDao,
@@ -107,5 +137,8 @@ module.exports = {
     CaseDao,
     StepDao,
     TaskDao,
-    ResultDao
+    TaskTypeDao,
+    ResultDao,
+    ServerAuthInfoDao,
+    ServerAuthScopeDao
 }

@@ -12,10 +12,30 @@ class User(Document):
         'collection': 'users'
     }
 
+class ServerAuthScope(Document):
+    name = StringField()
+    meta = {
+        'collection': 'serverauthscopes'
+    }
+
+class ServerAuthInfo(Document):
+    client_id = StringField(required=True, max_length=256)
+    redirect_uri = StringField(required=True)
+    scopes = ListField(ReferenceField(ServerAuthScope))
+    auth_url = StringField(required=True)
+    token_url = StringField(required=True)
+    meta = {
+        'collection': 'serverauthinfos'
+    }
+
 class FHIRServer(Document):
     name = StringField(required=True, max_length=256)
     url = URLField(required=True)
     access_token = StringField(required=False)
+    is_deleted = BooleanField()
+    is_deletable = BooleanField()
+    is_auth_required = BooleanField()
+    auth_info = ReferenceField(ServerAuthInfo)
     meta = {
         'collection': 'fhirservers'
     }
@@ -70,10 +90,8 @@ class TaskType(Document):
 class Task(Document):
     target_server = ReferenceField(FHIRServer, required=False)
     task_parameters = StringField()
-    language = StringField(required=False, max_length=16)
     task_type = ReferenceField(TaskType)
     code_status = StringField(max_length=64, choices=status_code.keys())
-    code = StringField(required=False)
     create_time = DateTimeField(default=datetime.datetime.now)
     user = ReferenceField(User, required=False)
     steps = ListField(ReferenceField(Step))
