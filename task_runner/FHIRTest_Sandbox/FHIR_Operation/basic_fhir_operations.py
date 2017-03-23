@@ -1,5 +1,5 @@
 from ..HTTP_Operation import basic_http_operation
-from ..config import jwt_secreat
+# from ..config import jwt_secreat
 import jwt
 
 def get_code(client_id, auth_url, redirect_uri, scope):
@@ -54,7 +54,36 @@ def read_fhir_resource(server_url, resource_type, access_token=None):
     status_code, response_json = basic_http_operation.send_get(resource_url, headers)
     isSuccessful = status_code < 400
     return isSuccessful, response_json
+
+def get_resources_ids(server_url, resource_type, access_token=None):
+    '''
+    get id list of a certain resource type
+    '''
+    resource_url = '%s/%s?_format=json' % (server_url, resource_type)
+    headers = {}
+    if access_token:
+        headers['Authorization'] = "Bearer %s" % access_token
+    status_code, response_json = basic_http_operation.send_get(resource_url, headers)
+    isSuccessful = status_code < 400
+    result = []
+    if isSuccessful:
+        result = extrace_id_list(response_json)
+    return isSuccessful, result
+
+def extrace_id_list(resource_bundle):
+    '''
+    extract id from a resource bundle
+    '''
+    id_list = []
+    if 'total' in resource_bundle and resource_bundle['total'] > 0 and 'entry' in resource_bundle:
+        entry_object = resource_bundle['entry']
+        id_list = extract_id(entry_object)
+    return id_list
     
+
+def extract_id(entry_obj):
+    id_list = map(lambda x: x['resource']['id'], entry_obj)
+    return id_list
 
 def create_fhir_resource(server_url, resource, access_token=None):
     '''
