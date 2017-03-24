@@ -1,7 +1,9 @@
-from .test_tasks import *
 from .tasks import *
-from .DBActions import get_task_object
+from .DBActions import get_task
+from .test_tasks import *
 import json
+import traceback
+import importlib
 
 class Runner:
     def __init__(self, pool_size=-1):
@@ -16,10 +18,12 @@ class Runner:
         '''
         excute a new task from the pool
         '''
-        if len(self.pendding_tasks) > 0:
+        if len(self.pendding_tasks) > 0:            
             next_task_id = self.pendding_tasks.pop(0)
+            print 'excuting %s' % next_task_id
             next_task_obj = self.__create_new_task_obj(next_task_id)
             if next_task_obj is not None:
+                print "Object created"
                 self.processing_tasks.append({
                     'task_id' : next_task_id,
                     'task_obj': next_task_obj
@@ -49,7 +53,7 @@ class Runner:
         '''
         get task config (parameters and task class)
         '''
-        task_instance = get_task_object(task_id)
+        task_instance = get_task(task_id)
         if task_instance is None:
             return None
         task_config = {
@@ -64,15 +68,25 @@ class Runner:
         create a new task instance
         '''
         task_config = self.__get_task_configs(task_id)
+        print task_config
         if task_config is None:
             return None
         task_clas_name = task_config['task_class']
+        print task_clas_name
         new_task_obj = None
-        try:
-            new_task_class = globals()[task_clas_name]
+        fullClassName = ".test_tasks.%s" % task_clas_name
+        package, module = fullClassName.rsplit('.', 1)
+        print package, module 
+        try:    
+            mod = importlib.import_module(package,'task_runner')
+            new_task_class = getattr(mod, module)
             parameters = json.loads(task_config['parameters'])
-            new_task_obj = new_task_class(parameters)
+            parameters['task_id'] = task_id
+            parameters['runner_obj'] = self
+            print parameters
+            new_task_obj = new_task_class(**parameters)
         except:
+            traceback.print_exc()
             pass
         return new_task_obj
 
@@ -82,5 +96,6 @@ class Runner:
         '''
         self.pendding_tasks.append(task_id)
         if not self.__is_pool_full():
+            print 'excuting'
             self.__excute_next_task()
 

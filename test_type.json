@@ -1,0 +1,8 @@
+{
+    "test_types":[
+        {
+            "name":"FHIR Resource Test",
+            "task_class":"FHIRResourceTest.FHIRResourceTest"
+        }
+    ]
+}

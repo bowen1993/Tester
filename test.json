@@ -1,0 +1,13 @@
+{
+    "task_type":"58d4bf888eac3aaa57377694",
+    "resources": [
+        {
+            "type":"Observation", 
+            "operation":"R"
+        }
+    ],
+    "server_info": {
+        "url":"http://fhirtest.uhn.ca/baseDstu3",
+        "is_auth_required":false
+    }
+}

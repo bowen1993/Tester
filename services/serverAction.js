@@ -45,10 +45,16 @@ var delete_server = function(server_id){
 }
 
 var get_server_obj = function(server_id){
-    var server = ServerDao.findOne({
-        id:server_id
-    });
-    return server;
+    try{
+        var server = ServerDao.findOne({
+            id:server_id
+        });
+        return server;
+    }catch(err){
+        console.log(err);
+        return null;
+    }
+    
 }
 
 module.exports = {

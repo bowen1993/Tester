@@ -2,11 +2,11 @@
 import urllib2
 import json
 from bs4 import BeautifulSoup
-import .MongodbOperation
+from .MongodbOperation import *
 
 class Generator():
 
-    __DataOperation__ = MongodbOperation.DataBaseOperation()
+    __DataOperation__ = DataBaseOperation()
     __loadready__ = False
     __versionType__ = None
     __resourceName__ = None

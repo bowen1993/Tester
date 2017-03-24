@@ -1,6 +1,6 @@
 let models = require('../models');
-let serverAction = require('serverAction');
-let userAction = require('userAction');
+let serverAction = require('./serverAction');
+let userAction = require('./userAction');
 let Task = models.Task;
 let TaskDao = models.TaskDao;
 let TaskType = models.TaskType;
@@ -16,17 +16,21 @@ var validate_task_info = function(task_info){
 
 var pre_process_task_info = function(task_info){
     // extract parameters from raw task info
+    console.log(task_info);
     var parameters = {};
     for( key in task_info ){
         if( task_info.hasOwnProperty(key) ){
             // check key task info or task parameters
             if( task_keywords.indexOf(key) < 0 ){
+                console.log(key)
                 parameters[key] = task_info[key];
+                console.log(task_info[key])
                 delete task_info[key];
             }
         }
     }
     task_info['parameters'] = parameters;
+    console.log(parameters)
     return task_info;
 }
 
@@ -35,18 +39,22 @@ var create_new_task = function(task_info){
     var user_obj = userAction.get_user_obj(task_info.username);
     var task_type_obj = get_task_type_obj(task_info.task_type);
 
-    if( !task_type_obj || !server_obj ){
+    if( !task_type_obj ){
+        console.log("Invalid task type");
         return null;
     }
     var new_task = new Task({
-        target_server: server_obj,
-        task_parameters: task_info.parameters,
+        task_type:task_type_obj,
+        task_parameters: JSON.stringify(task_info.parameters),
         code_status: 'WTNG',
         create_time: Date.now(),
         is_processed: false
     });
     if( user_obj ){
         new_task.user = user_obj;
+    }
+    if( server_obj ){
+        new_task.target_server = server_obj;
     }
     if( task_info.hasOwnProperty('code') ){
         new_task.code = task_info.code;
@@ -55,7 +63,7 @@ var create_new_task = function(task_info){
         new_task.language = task_info.language;
     }
     try{
-        new_task.save();
+        TaskDao.create(new_task);
     }
     catch(err){
         console.log(err);
@@ -86,6 +94,7 @@ var get_task_info = function(task_id){
 }
 
 var get_task_type_obj = function(task_type_id){
+    console.log(task_type_id);
     task_type_obj = null;
     try{
         task_type_obj = TaskTypeDao.findOne({id:task_type_id});

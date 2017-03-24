@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var serverAction = require('../services/serverAction');
+var serverAction = require('../services/serverAction')
 var taskAction = require('../services/taskAction');
 var matrixAction = require('../services/matrixAction');
 var viewAction = require('../services/viewAction');
@@ -57,8 +57,11 @@ router.post('/deleteServer', function(req, res, next) {
 
 router.post('/submit_task', function(req, res, next){
     var raw_task_info = req.body;
+    console.log(raw_task_info);
     var processed_task_info = taskAction.pre_process_task_info(raw_task_info);
+    console.log(processed_task_info);
     var created_task_id = taskAction.create_new_task(processed_task_info);
+    console.log(created_task_id);
     var result = {
         task_id:created_task_id,
         isSuccessful: false

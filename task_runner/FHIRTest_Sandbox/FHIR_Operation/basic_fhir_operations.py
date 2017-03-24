@@ -85,7 +85,7 @@ def extract_id(entry_obj):
     id_list = map(lambda x: x['resource']['id'], entry_obj)
     return id_list
 
-def create_fhir_resource(server_url, resource, access_token=None):
+def create_fhir_resource(server_url, resource_type, resource, access_token=None):
     '''
     create fhir resources
     '''

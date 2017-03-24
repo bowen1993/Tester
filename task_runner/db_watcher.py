@@ -14,6 +14,7 @@ class DBWatcher:
         '''
         while True:
             new_tasks = DBActions.get_unprocessed_task()
+            # print new_tasks
             if new_tasks and new_tasks.count() > 0:
                 # new task find
                 for new_task in new_tasks:

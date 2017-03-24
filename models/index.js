@@ -73,7 +73,7 @@ let Step = um.model.createModel('Step', {
     })
 });
 
-let TaskType = um.model.createModel('Step', {
+let TaskType = um.model.createModel('TaskType', {
     name: Text(),
     task_class: Text(),
 });
@@ -82,7 +82,7 @@ let Task = um.model.createModel('Task', {
     target_server: UObject({
         type: 'Server'
     }),
-    task_parameters = Text(),
+    task_parameters: Text(),
     task_type: UObject({
         type: 'TaskType'
     }),
@@ -114,6 +114,7 @@ let LevelDao = session.getDao(Level);
 let CaseDao = session.getDao(Case);
 let StepDao = session.getDao(Step);
 let TaskDao = session.getDao(Task);
+let TaskTypeDao = session.getDao(TaskType);
 let ResultDao = session.getDao(Result);
 let ServerAuthInfoDao = session.getDao(ServerAuthInfo);
 let ServerAuthScopeDao = session.getDao(ServerAuthScope);

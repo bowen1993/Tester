@@ -3,6 +3,8 @@ from db_watcher import DBWatcher
 import os
 if __name__ == '__main__':
     print 'Hello World'
-    print os.getcwd()
+    runner = Runner()
+    watcher = DBWatcher(runner_obj=runner)
+    watcher.watching()
     # w = DBWatcher()
     # w.watching()

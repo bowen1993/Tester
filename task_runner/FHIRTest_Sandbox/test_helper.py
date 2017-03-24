@@ -1,6 +1,6 @@
 from .FHIR_Operation import basic_fhir_operations, fhir_test_cases
 
-def test_a_resource(resource_type, operations):
+def test_write_resource(resource_type, operations):
     '''
     test a certain resource type with a certain operation (write or read)
     '''

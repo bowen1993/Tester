@@ -9,13 +9,15 @@ class User(Document):
     password = StringField(required=True)
     user_level = IntField(required=True, default=0)
     meta = {
-        'collection': 'users'
+        'collection': 'users',
+        'strict': False
     }
 
 class ServerAuthScope(Document):
     name = StringField()
     meta = {
-        'collection': 'serverauthscopes'
+        'collection': 'serverauthscopes',
+        'strict': False
     }
 
 class ServerAuthInfo(Document):
@@ -25,31 +27,37 @@ class ServerAuthInfo(Document):
     auth_url = StringField(required=True)
     token_url = StringField(required=True)
     meta = {
-        'collection': 'serverauthinfos'
+        'collection': 'serverauthinfos',
+        'strict': False
     }
 
 class FHIRServer(Document):
     name = StringField(required=True, max_length=256)
     url = URLField(required=True)
     access_token = StringField(required=False)
+    user = ReferenceField(User)
+    is_open = BooleanField()
     is_deleted = BooleanField()
     is_deletable = BooleanField()
     is_auth_required = BooleanField()
     auth_info = ReferenceField(ServerAuthInfo)
     meta = {
-        'collection': 'fhirservers'
+        'collection': 'fhirservers',
+        'strict': False
     }
 
 class Resource(Document):
     name = StringField(required=True, max_length=256)
     meta = {
-        'collection': 'resources'
+        'collection': 'resources',
+        'strict': False
     }
 
 class Level(Document):
     name = StringField(required=True)
     meta = {
-        'collection': 'levels'
+        'collection': 'levels',
+        'strict': False
     }
 
 class Case(Document):
@@ -60,11 +68,9 @@ class Case(Document):
     http_response = StringField()
     http_response_status = IntField()
     resource = StringField()
-    @property
-    def status(self):
-        return status_code[self.code_status]
     meta = {
-        'collection': 'cases'
+        'collection': 'cases',
+        'strict': False
     }
 
 class Step(Document):
@@ -73,18 +79,17 @@ class Step(Document):
     description = StringField()
     additional_filepath = StringField()
     cases = ListField(ReferenceField(Case))
-    @property
-    def status(self):
-        return status_code[self.code_status]
     meta = {
-        'collection': 'steps'
+        'collection': 'steps',
+        'strict': False
     }
 
 class TaskType(Document):
     name = StringField(required=True)
     task_class = StringField(required=True)
     meta = {
-        'collection': 'tasktypes'
+        'collection': 'tasktypes',
+        'strict': False
     }
 
 class Task(Document):
@@ -96,20 +101,16 @@ class Task(Document):
     user = ReferenceField(User, required=False)
     steps = ListField(ReferenceField(Step))
     is_processed = BooleanField(default=False)
-    @property
-    def status(self):
-        return status_code[self.code_status]
     meta = {
-        'collection': 'tasks'
+        'collection': 'tasks',
+        'strict': False
     }
 
 class Result(Document):
     task = ReferenceField(Task, required=True)
     code_status = StringField(required=True, max_length=64, choices=status_code.keys())
     level = ListField(ReferenceField(Level))
-    @property
-    def status(self):
-        return status_code[self.code_status]
     meta = {
-        'collection': 'results'
+        'collection': 'results',
+        'strict': False
     }
