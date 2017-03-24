@@ -110,6 +110,7 @@ class Result(Document):
     task = ReferenceField(Task, required=True)
     code_status = StringField(required=True, max_length=64, choices=status_code.keys())
     level = ListField(ReferenceField(Level))
+    resource = ListField(ReferenceField(Resource))
     meta = {
         'collection': 'results',
         'strict': False

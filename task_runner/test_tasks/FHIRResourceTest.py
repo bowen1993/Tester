@@ -50,6 +50,12 @@ class FHIRResourceTest(abstract_test_task):
         update_a_task(self.task_id, {
             "code_status": 'S' if isAllSuccess else 'F'
         })
+        task_obj = get_task(self.task_id)
+        if task_obj:
+            result_obj = create_a_result({
+                "task": task_obj,
+                "code_status": 'S' is isAllSuccess else 'F'
+            })
         self.runner_obj.notify_completed(self.task_id)
     
     def task_status(self):
@@ -78,6 +84,7 @@ class FHIRResourceTest(abstract_test_task):
         correct_cases = fhir_test_cases.get_resource_correct_cases(resource_type)
         wrong_cases = fhir_test_cases.get_resource_wrong_cases(resource_type)
         # test with correct cases
+        # TODO: test with correct/wrong cases into methods
         isCorrectPassed = True
         for case in correct_cases:
             isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
