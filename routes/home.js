@@ -21,15 +21,9 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/addServer', function(req, res, next){
-    var name = req.body.name;
-    var url = req.body.url;
-    var access_token = null;
-    console.log(name)
-    if( req.body.token ){
-        access_token = req.body.token;
-    }
-    add_new_server(name, url, access_token);
-    res.json({isSuccessful:true});
+    console.log(req.body);
+    isSuccessful = add_new_server(req.body);
+    res.json({isSuccessful:isSuccessful});
 });
 
 router.get('/servers', function(req, res, next){

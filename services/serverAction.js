@@ -1,33 +1,64 @@
 let models = require('../models');
 let Server = models.FHIRServer;
 let ServerDao = models.FHIRServerDao;
+let ServerAuthInfo = models.ServerAuthInfo;
+let ServerAuthInfoDao = models.ServerAuthInfoDao;
+let ServerAuthScope = models.ServerAuthScope;
+let ServerAuthScopeDao = models.ServerAuthScopeDao;
 
-var add_new_server = function(name, url, token=null){
+
+var add_new_server = function(server_info){
     var new_server = new Server({
-        name:name,
-        url:url,
-        access_token:token,
+        name: server_info.nane,
+        url: server_info.url,
+        is_deleted: false,
         is_deletable: true,
-        is_delete:false
-    });
-    console.log(new_server);
+        is_auth_required: server_info.is_auth_required
+    })
     ServerDao.create(new_server);
-    console.log('created');
+    if( server_info.is_auth_required ){
+        // create server auth
+        var new_server_auth = new ServerAuthInfo({
+            client_id: server_info.client_id,
+            redirect_uri: server_info.redirect_uri,
+            auth_url:server_info.auth_url,
+            token_url:server_info.token_url
+        });
+        try{
+            ServerAuthInfoDao.create(new_server_auth);
+            for( var scope in server_info.scopes ){
+                var new_server_scope = new ServerAuthScope({
+                    name: server_info.scopes[scope]
+                });
+                ServerAuthScopeDao.create(new_server_scope)
+                ServerAuthInfoDao.update({
+                    id:new_server_auth.id
+                },{
+                    $push:{
+                        scopes:new_server_scope.id
+                    }
+                });
+            }
+            ServerDao.update({
+                id:new_server.id
+            },{
+                $push:{
+                    auth_info:new_server_auth
+                }
+            });
+        } catch( err ){
+            console.log(err);
+            return false;
+        }
+    }
+    return true;
 }
 
 var all_servers = function(){
-    var server_info = {
-        includes: [
-            'name',
-            'url',
-            'id',
-            'is_deletable'
-        ]
-    };
     var servers = ServerDao.find({
-        is_delete:false
+        is_deleted:false
     });
-    var format_servers = Server.toObjectArray(servers, server_info);
+    var format_servers = Server.toObjectArray(servers,{recursive: true});
     return format_servers;
 }
 
@@ -37,7 +68,7 @@ var delete_server = function(server_id){
     });
     var isSuccessful = false;
     if( server && server.is_deletable){
-        server.is_delete = true;
+        server.is_deleted = true;
         ServerDao.update(server)
         isSuccessful = true
     }
