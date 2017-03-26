@@ -1,6 +1,7 @@
 from ..abstract_test_task import abstract_test_task
 from ..DBActions import *
 from ..FHIRTest_Sandbox.FHIR_Operation import basic_fhir_operations, fhir_test_cases
+from ..FHIRTest_Sandbox import test_helper
 
 class FHIRResourceTest(abstract_test_task):
     def __init__(self, task_id, runner_obj, resources=[], server_info=None):
@@ -74,7 +75,7 @@ class FHIRResourceTest(abstract_test_task):
         })
         if case_obj:
             push_case2step(step_id, case_obj)
-        return (case_obj is None) and isSuccessful
+        return (not case_obj is None) and isSuccessful
     
     def __excute_resource_write(self, resource_type, step_id):
         '''
@@ -87,6 +88,7 @@ class FHIRResourceTest(abstract_test_task):
         # TODO: test with correct/wrong cases into methods
         isCorrectPassed = True
         for case in correct_cases:
+            case = test_helper.set_reference(case, self.server_info['url'], self.token)
             isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
             if not isSuccessful:
                 isCorrectPassed = False
@@ -111,6 +113,7 @@ class FHIRResourceTest(abstract_test_task):
                 isCorrectPassed = False
         isWrongPassed = True
         for case in wrong_cases:
+            case = test_helper.set_reference(case, self.server_info['url'], self.token)
             isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
             if isSuccessful:
                 isWrongPassed = False

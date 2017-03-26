@@ -55,6 +55,18 @@ def read_fhir_resource(server_url, resource_type, access_token=None):
     isSuccessful = status_code < 400
     return isSuccessful, response_json
 
+def read_one_resource(server_url, resource_type, resource_id, access_token=None):
+    '''
+    read one resource with id
+    '''
+    resource_url = "%s/%s/%s?_format=json" % (server_url, resource_type, resource_id)
+    headers = {}
+    if access_token:
+        headers['Authorization'] = "Bearer %s" % access_token
+    status_code, response_json = basic_http_operation.send_get(resource_url, headers)
+    isSuccessful = status_code < 400
+    return isSuccessful, response_json
+
 def get_resources_ids(server_url, resource_type, access_token=None):
     '''
     get id list of a certain resource type
@@ -69,6 +81,7 @@ def get_resources_ids(server_url, resource_type, access_token=None):
     if isSuccessful:
         result = extrace_id_list(response_json)
     return isSuccessful, result
+
 
 def extrace_id_list(resource_bundle):
     '''
