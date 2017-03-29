@@ -32,7 +32,18 @@ router.get('/servers', function(req, res, next){
         isSuccessful:true,
         servers:servers
     });
-})
+});
+
+router.get('/serverInfo', function(req, res, next){
+    var server_id = req.query.server_id;
+    var server_info = serverAction.get_server_info(server_id);
+    console.log(server_info);
+    var result = {
+        isSuccessful: server_info != null,
+        server_info: server_info
+    }
+    res.json(result);
+});
 
 router.post('/deleteServer', function(req, res, next) {
     var server_id = req.body.id;
@@ -62,6 +73,15 @@ router.post('/submit_task', function(req, res, next){
     }
     if( created_task_id ){
         result.isSuccessful = true;
+    }
+    res.json(result);
+});
+
+router.get('/task_types', function(req, res, next){
+    var task_types = taskAction.get_task_types()
+    result = {
+        isSuccessful:true,
+        task_types:task_types
     }
     res.json(result);
 });

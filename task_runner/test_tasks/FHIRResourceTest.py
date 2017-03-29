@@ -2,6 +2,8 @@ from ..abstract_test_task import abstract_test_task
 from ..DBActions import *
 from ..FHIRTest_Sandbox.FHIR_Operation import basic_fhir_operations, fhir_test_cases
 from ..FHIRTest_Sandbox import test_helper
+import os
+import json
 
 class FHIRResourceTest(abstract_test_task):
     def __init__(self, task_id, runner_obj, resources=[], server_info=None):
@@ -48,15 +50,17 @@ class FHIRResourceTest(abstract_test_task):
                 "description": "%s test %s" % (resource["type"], ("successfully" if isStepSuccess else "failed"))
             })
             isAllSuccess = isAllSuccess and isStepSuccess
+        print 'finish'
         update_a_task(self.task_id, {
             "code_status": 'S' if isAllSuccess else 'F'
         })
         task_obj = get_task(self.task_id)
         if task_obj:
+            print 'create result'
             result_obj = create_a_result({
-                "task": task_obj,
-                "code_status": 'S' is isAllSuccess else 'F'
+                "code_status": 'S' if isAllSuccess else 'F'
             })
+            push_result2task(self.task_id, result_obj)
         self.runner_obj.notify_completed(self.task_id)
     
     def task_status(self):
@@ -67,13 +71,21 @@ class FHIRResourceTest(abstract_test_task):
         read a resource with server
         '''
         isSuccessful, response_json = basic_fhir_operations.read_fhir_resource(self.server_info["url"], resource_type, self.token)
+        print isSuccessful, response_json
+        json_str = ''
+        try:
+            json_str = json.dumps(response_json)
+        except:
+            pass
         case_obj = create_a_case({
             "code_status": "S" if isSuccessful else "F",
             "name": resource_type,
-            "description": "%s can be readed",
-            "http_response": response_json
+            "description": "%s can be readed" % resource_type,
+            "http_response": json_str
         })
+        print case_obj
         if case_obj:
+            print 'case'
             push_case2step(step_id, case_obj)
         return (not case_obj is None) and isSuccessful
     
@@ -84,23 +96,31 @@ class FHIRResourceTest(abstract_test_task):
         #get test cases
         correct_cases = fhir_test_cases.get_resource_correct_cases(resource_type)
         wrong_cases = fhir_test_cases.get_resource_wrong_cases(resource_type)
+        res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
         # TODO: test with correct/wrong cases into methods
         isCorrectPassed = True
-        for case in correct_cases:
-            case = test_helper.set_reference(case, self.server_info['url'], self.token)
-            isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
-            if not isSuccessful:
-                isCorrectPassed = False
-                case_obj = create_a_case({
-                    "code_status": "F",
-                    "name": resource_type,
-                    "description": "%s in correct format can not be processed" % resource_type,
-                    "http_response":response_json,
-                    "resource": case
-                })
-                if case_obj:
-                    push_case2step(step_id, case_obj)
+        if correct_cases:
+            for case in correct_cases:
+                case = test_helper.set_reference(case, self.server_info['url'], self.token, id_dict)
+                isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
+                if not isSuccessful:
+                    isCorrectPassed = False
+                    json_str = ''
+                    try:
+                        json_str = json.dumps(response_json)
+                    except:
+                        pass
+                    case_obj = create_a_case({
+                        "code_status": "F",
+                        "name": resource_type,
+                        "description": "%s in correct format can not be processed" % resource_type,
+                        "http_response":json_str,
+                        "resource": json.dumps(case)
+                    })
+                    if case_obj:
+                        print 'case'
+                        push_case2step(step_id, case_obj)
         if isCorrectPassed:
             case_obj = create_a_case({
                 "code_status": "S",
@@ -108,34 +128,40 @@ class FHIRResourceTest(abstract_test_task):
                 "description": "%s in correct format can be processed properly" % resource_type
             })
             if case_obj:
+                print 'case'
                 push_case2step(step_id, case_obj)
-            else:
-                isCorrectPassed = False
         isWrongPassed = True
-        for case in wrong_cases:
-            case = test_helper.set_reference(case, self.server_info['url'], self.token)
-            isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
-            if isSuccessful:
-                isWrongPassed = False
-                case_obj = create_a_case({
-                    "code_status": "F",
-                    "name": resource_type,
-                    "description": "%s in wrong format can not be processed" % resource_type,
-                    "http_response": response_json,
-                    "resource":case
-                })
-                if case_obj:
-                    push_case2step(step_id, case_obj)
+        if wrong_cases:
+            for case in wrong_cases:
+                case = test_helper.set_reference(case, self.server_info['url'], self.token)
+                isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
+                if isSuccessful:
+                    isWrongPassed = False
+                    json_str = ''
+                    try:
+                        json_str = json.dumps(response_json)
+                    except:
+                        pass
+                    case_obj = create_a_case({
+                        "code_status": "W",
+                        "name": resource_type,
+                        "description": "%s in wrong format can not be processed" % resource_type,
+                        "http_response": json_str,
+                        "resource":json.dumps(case)
+                    })
+                    if case_obj:
+                        print 'case'
+                        push_case2step(step_id, case_obj)
         if isWrongPassed:
             case_obj = create_a_case({
                 "code_status": "S",
                 "name": resource_type,
-                "description": "%s in correct format can be processed properly" % resource_type
+                "description": "%s in wrong format can be processed properly" % resource_type
             })
             if case_obj:
+                print 'case'
                 push_case2step(step_id, case_obj)
-                isWrongPassed = False
-        return isCorrectPassed and isWrongPassed
+        return isCorrectPassed
 
 
 

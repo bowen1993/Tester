@@ -1,8 +1,70 @@
 {
     "test_types":[
         {
-            "name":"FHIR Resource Test",
-            "task_class":"FHIRResourceTest.FHIRResourceTest"
+            "resource_type":0,
+            "object":{
+                "name":"FHIR Resource Test",
+                "task_class":"FHIRResourceTest.FHIRResourceTest"
+            }
+        },
+        {
+            "resource_type":1,
+            "object":{
+                "name":"Level Test",
+                "task_class":"Leveltest.Leveltest"
+            }
+        }
+    ],
+    "resources":[
+        {
+            "name":"0",
+            "type_code": 1,
+            "isOptionable": false
+        },
+        {
+            "name":"1",
+            "type_code": 1,
+            "isOptionable": false
+        },
+        {
+            "name":"2",
+            "type_code": 1,
+            "isOptionable": false
+        },
+        {
+            "name":"3",
+            "type_code": 1,
+            "isOptionable": false
+        },
+        {
+            "name":"4",
+            "type_code": 1,
+            "isOptionable": false
+        },
+        {
+            "name":"5",
+            "type_code": 1,
+            "isOptionable": false
+        },
+        {
+            "name": "Sequence",
+            "type_code": 0,
+            "isOptionable": true
+        },
+        {
+            "name": "Observation",
+            "type_code": 0,
+            "isOptionable": true
+        },
+        {
+            "name": "DiagnosticReport",
+            "type_code": 0,
+            "isOptionable": true
+        },
+        {
+            "name": "FamilyMemberHistory",
+            "type_code": 0,
+            "isOptionable": true
         }
     ]
 }

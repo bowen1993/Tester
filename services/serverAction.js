@@ -9,7 +9,7 @@ let ServerAuthScopeDao = models.ServerAuthScopeDao;
 
 var add_new_server = function(server_info){
     var new_server = new Server({
-        name: server_info.nane,
+        name: server_info.name,
         url: server_info.url,
         is_deleted: false,
         is_deletable: true,
@@ -85,12 +85,24 @@ var get_server_obj = function(server_id){
         console.log(err);
         return null;
     }
-    
+}
+
+var get_server_info = function(server_id){
+    var server_obj = get_server_obj(server_id);
+    console.log(server_obj);
+    if( server_obj ){
+        return server_obj.toObject({
+            recursive: true
+        });
+    }else{
+        return null;
+    }
 }
 
 module.exports = {
     add_new_server,
     all_servers,
     delete_server,
-    get_server_obj
+    get_server_obj,
+    get_server_info
 }

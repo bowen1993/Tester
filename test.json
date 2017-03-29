@@ -3,7 +3,7 @@
     "resources": [
         {
             "type":"Observation", 
-            "operation":"R"
+            "operation":["R"]
         }
     ],
     "server_info": {

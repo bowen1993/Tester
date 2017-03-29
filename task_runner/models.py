@@ -92,6 +92,14 @@ class TaskType(Document):
         'strict': False
     }
 
+class Result(Document):
+    code_status = StringField(required=True, max_length=64, choices=status_code.keys())
+    level = ListField(ReferenceField(Resource))
+    meta = {
+        'collection': 'results',
+        'strict': False
+    }
+
 class Task(Document):
     target_server = ReferenceField(FHIRServer, required=False)
     task_parameters = StringField()
@@ -101,17 +109,9 @@ class Task(Document):
     user = ReferenceField(User, required=False)
     steps = ListField(ReferenceField(Step))
     is_processed = BooleanField(default=False)
+    result = ReferenceField(Result)
     meta = {
         'collection': 'tasks',
         'strict': False
     }
 
-class Result(Document):
-    task = ReferenceField(Task, required=True)
-    code_status = StringField(required=True, max_length=64, choices=status_code.keys())
-    level = ListField(ReferenceField(Level))
-    resource = ListField(ReferenceField(Resource))
-    meta = {
-        'collection': 'results',
-        'strict': False
-    }

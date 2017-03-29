@@ -35,10 +35,11 @@ def get_access_token(code, client_id, auth_url, redirect_uri):
     access_token = r.json()['access_token']
     return access_token
 
-def basicOAuth(auth_info, auth_url):
+def basicOAuth(auth_info):
     '''
     run OAuth 2.0 to gain access token
     '''
+    auth_url = auth_info['auth_url']
     auth_code = get_code(auth_info['client_id'], '%s/authorize'%auth_url, auth_info['redirect_uri'], auth_info['scope'])
     access_token = get_access_token(auth_code, auth_info['client_id'], '%s/token'%auth_url, auth_info['redirect_uri'])
     return access_token

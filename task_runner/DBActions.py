@@ -1,15 +1,23 @@
 from .models import *
+import traceback
 
 def get_unprocessed_task():
     try:
         unprocessed_tasks = Task.objects(is_processed=False)
         return unprocessed_tasks
     except:
+        print traceback.print_exc()
         return None
 
 def insert_task():
     new_task = Task(task_parameters="")
     new_task.save()
+
+def push_result2task(task_id, result_obj):
+    update_info = {
+        "result": result_obj
+    }
+    return update_a_task(task_id, update_info)
 
 def push_step2task(task_id, step_obj):
     update_info = {
@@ -43,6 +51,7 @@ def create_a_case(case_info):
         new_case.save()
         return new_case
     except:
+        print traceback.print_exc()
         return None
 
 def get_case(case_id):
@@ -50,6 +59,7 @@ def get_case(case_id):
         caes_obj = Case.objects(id=case_id)
         return caes_obj[0]
     except:
+        print traceback.print_exc()
         return None
 
 def find_case(find_query):
@@ -57,6 +67,7 @@ def find_case(find_query):
         found_cases = Case.objects(**find_query)
         return found_cases
     except:
+        print traceback.print_exc()
         return None
 
 def update_a_case(case_id, update_info):
@@ -64,6 +75,7 @@ def update_a_case(case_id, update_info):
         Case.objects(id=case_id).update_one(**update_info)
         return True
     except:
+        print traceback.print_exc()
         return False
 
 #CURD for Step
@@ -73,6 +85,7 @@ def create_a_step(step_info):
         new_step.save()
         return new_step
     except:
+        print traceback.print_exc()
         return None
 
 def get_step(step_id):
@@ -80,6 +93,7 @@ def get_step(step_id):
         step_obj = Step.objects(id=step_id).first()
         return step_obj
     except:
+        print traceback.print_exc()
         return None
 
 def find_step(find_query):
@@ -87,6 +101,7 @@ def find_step(find_query):
         found_steps = Step.objects(**find_query)
         return found_steps
     except:
+        print traceback.print_exc()
         return None
 
 def update_a_step(step_id, update_info):
@@ -94,6 +109,7 @@ def update_a_step(step_id, update_info):
         Step.objects(id=step_id).update_one(**update_info)
         return True
     except:
+        print traceback.print_exc()
         return False
 
 #CURD for Result
@@ -103,6 +119,7 @@ def create_a_result(result_info):
         new_result.save()
         return new_result
     except:
+        print traceback.print_exc()
         return None
 
 def update_a_result(result_id, update_info):
@@ -110,6 +127,7 @@ def update_a_result(result_id, update_info):
         Result.objects(id=result_id).update_one(**update_info)
         return True
     except:
+        print traceback.print_exc()
         return False
 
 # CURD for Task
@@ -118,6 +136,7 @@ def update_a_task(task_id, update_info):
         Task.objects(id=task_id).update_one(**update_info)
         return True
     except:
+        print traceback.print_exc()
         return False
 
 def get_task(task_id):
@@ -125,6 +144,7 @@ def get_task(task_id):
         task_obj = Task.objects(id=task_id).first()
         return task_obj
     except:
+        print traceback.print_exc()
         return None
 
 # CURD for Server
@@ -133,5 +153,6 @@ def get_server(server_id):
         server_obj = FHIRServer.objects(id=server_id).first()
         return server_obj
     except:
+        print traceback.print_exc()
         return None
 

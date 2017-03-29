@@ -5,6 +5,8 @@ let Task = models.Task;
 let TaskDao = models.TaskDao;
 let TaskType = models.TaskType;
 let TaskTypeDao = models.TaskTypeDao;
+let Result = models.Result;
+let ResultDao = models.ResourceDao;
 
 
 var task_keywords = ['target_server', 'task_type', 'code_status', 'username']
@@ -43,6 +45,8 @@ var create_new_task = function(task_info){
         console.log("Invalid task type");
         return null;
     }
+    console.log('creatig task');
+    console.log(task_info);
     var new_task = new Task({
         task_type:task_type_obj,
         task_parameters: JSON.stringify(task_info.parameters),
@@ -50,12 +54,17 @@ var create_new_task = function(task_info){
         create_time: Date.now(),
         is_processed: false
     });
+    console.log(new_task);
+    console.log(user_obj);
     if( user_obj ){
         new_task.user = user_obj;
     }
+    console.log(12);
     if( server_obj ){
         new_task.target_server = server_obj;
     }
+    console.log(1);
+    console.log(new_task);
     if( task_info.hasOwnProperty('code') ){
         new_task.code = task_info.code;
     }
@@ -75,7 +84,7 @@ var create_new_task = function(task_info){
 var get_task_obj = function(task_id){
     var task_obj = null;
     try{
-        task_obj = Task.objects.findOne({id:task_id});
+        task_obj = TaskDao.findOne({id:task_id});
     }catch(err){
         console.log(err);
     }
@@ -93,6 +102,31 @@ var get_task_info = function(task_id){
     return task_info;
 }
 
+var get_task_steps = function(task_id){
+    var task_obj = get_task_obj(task_id);
+    if( task_obj ){
+        return task_obj.toObject({
+            recursive:true
+        })
+    }
+    return null;
+}
+
+var get_task_result = function(task_id){
+    console.log(task_id)
+    try{
+        var result = ResultDao.findOne({
+            task:task_id
+       });
+       console.log(result);
+       return result.toObject({recursive:true});
+    }catch(err){
+        console.log(err);
+        return null;
+    }
+}
+
+
 var get_task_type_obj = function(task_type_id){
     console.log(task_type_id);
     task_type_obj = null;
@@ -104,8 +138,22 @@ var get_task_type_obj = function(task_type_id){
     return task_type_obj;
 }
 
+var get_task_types = function(){
+    task_type_list = [];
+    try{
+        task_types = TaskTypeDao.find({});
+        task_type_list = TaskType.toObjectArray(task_types, {recursive: true});
+    }catch( err ){
+        console.log(err);
+    }
+    return task_type_list;
+}
+
 module.exports = {
     create_new_task,
     get_task_info,
-    pre_process_task_info
+    pre_process_task_info,
+    get_task_types,
+    get_task_result,
+    get_task_steps
 }

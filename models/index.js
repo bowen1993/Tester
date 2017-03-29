@@ -29,8 +29,7 @@ let ServerAuthInfo = um.model.createModel('ServerAuthInfo', {
     scopes: UObjectArray({
         type: 'ServerAuthScope'
     }),
-    auth_url: Text(),
-    token_url: Text()
+    auth_url: Text()
 });
 
 let FHIRServer = um.model.createModel('FHIRServer', {
@@ -50,7 +49,9 @@ let Level = um.model.createModel('Level', {
 });
 
 let Resource = um.model.createModel('Resource', {
-    name: Text()
+    name: Text(),
+    type_code: Integer(),
+    isOptionable: Bool()
 });
 
 let Case = um.model.createModel('Case', {
@@ -76,11 +77,14 @@ let Step = um.model.createModel('Step', {
 let TaskType = um.model.createModel('TaskType', {
     name: Text(),
     task_class: Text(),
+    related_resources: UObjectArray({
+        type: 'Resource'
+    })
 });
 
 let Task = um.model.createModel('Task', {
     target_server: UObject({
-        type: 'Server'
+        type: 'FHIRServer'
     }),
     task_parameters: Text(),
     task_type: UObject({
@@ -94,16 +98,16 @@ let Task = um.model.createModel('Task', {
     steps: UObjectArray({
         type: 'Step'
     }),
-    is_processed:Bool()
+    is_processed:Bool(),
+    result: UObject({
+        type:"Result"
+    })
 });
 
 let Result = um.model.createModel('Result', {
-    task: UObject({
-        type: 'Task'
-    }),
     code_status: Text(),
     level: UObjectArray({
-        type: 'Level'
+        type: 'Resource'
     })
 });
 

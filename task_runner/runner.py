@@ -44,6 +44,7 @@ class Runner:
         called when a task is done and remove from pool
         '''
         task_index = self.__find_task_in_pool(task_id)
+        print "%s completed" % task_id
         if task_index >= 0:
             del self.processing_tasks[task_index]
             if len(self.pendding_tasks) > 0:

@@ -9,8 +9,10 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var home = require('./routes/home');
 var account = require('./routes/account');
+var cors = require('cors');
 
 var app = express();
+var expressWs = require('express-ws')(app);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,13 +24,13 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors({origin: 'http://localhost:8001'}));
 // app.use(session({secret:'dontpanic', access_token:'hello'}));
 app.use('/static', express.static(path.join(__dirname, '/public')));
 app.use(fibers);
 app.use('/', routes);
 app.use('/home', home);
 app.use('/account', account);
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

@@ -5,9 +5,11 @@ def send_get(url, headers):
     '''
     send http get request
     '''
+    print url, headers
     response = requests.get(url, headers=headers)
     response_json = None
     try:
+        print response.text
         response_json = response.json()
     except:
         print traceback.print_exc()
@@ -18,9 +20,11 @@ def send_post(url, headers, data):
     '''
     send http post request
     '''
-    response = requests.post(url, data=data, headers=headers)
+    print url, headers
+    response = requests.post(url, json=data, headers=headers)
     response_json = None
     try:
+        print response.text
         response_json = response.json()
     except:
         print traceback.print_exc()
