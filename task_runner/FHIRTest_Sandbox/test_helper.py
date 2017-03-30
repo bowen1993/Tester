@@ -84,15 +84,15 @@ def read_repo(resource_type, resource_id, url, ga4gh_url, access_token):
         isReadSuccess = True
         variantId = None
         print 'response'
-        print response['repository']
+        print response_json['repository']
         #get variant id
         try:
-            variantId = response['repository'][0]['variantId']
+            variantId = response_json['repository'][0]['variantId']
         except:
             pass
         print variantId
         if variantId and len(variantId) != 0:
-            repo_url = '%svariants/%s' % (ga4gh_url, variantId)
+            repo_url = '%s/variants/%s' % (ga4gh_url, variantId)
             status_code, response_json = basic_http_operation.send_get(repo_url, {})
             return status_code > 400, response_json
     else:

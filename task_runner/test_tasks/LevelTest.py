@@ -2,6 +2,8 @@ from ..abstract_test_task import abstract_test_task
 from ..DBActions import *
 from ..FHIRTest_Sandbox.FHIR_Operation import basic_fhir_operations, fhir_test_cases
 from ..FHIRTest_Sandbox import test_helper
+import json
+import os
 
 genetic_profile_extensions = [
     {
@@ -45,8 +47,9 @@ gene_repository = [{"url": "https://www.googleapis.com/genomics/v1beta2", "name"
 ga4gh_url = "http://1kgenomes.ga4gh.org"
 
 class Leveltest(abstract_test_task):
-    def __init__(self, task_id, runner_obj, levels=[], server_info=None):
-        self.levels = levels
+    def __init__(self, task_id, runner_obj, resources=[], server_info=None):
+        super(Leveltest, self).__init__(task_id, runner_obj)
+        self.resources = resources
         self.server_info = server_info
         self.token = None
         self.success_levels = []
@@ -65,20 +68,33 @@ class Leveltest(abstract_test_task):
         if self.server_info["is_auth_required"]:
             self.token = basic_fhir_operations.basicOAuth(self.server_info["auth_info"], self.server_info["auth_url"])
         # TODO: finish level test
-        for level in self.levels:
-            test_method_name = "__test_%s" % level
+        for level in self.resources:
+            test_method_name = "test_%s" % level
+            getattr(self, test_method_name)()
+        print 'finish'
+        update_a_task(self.task_id, {
+            "code_status": 'S' if len(self.success_levels) == len(self.resources) else 'F'
+        })
+        task_obj = get_task(self.task_id)
+        if task_obj:
+            print 'create result'
+            result_obj = create_a_result({
+                "code_status": 'S' if len(self.success_levels) == len(self.resources) else 'F'
+            })
+            push_result2task(self.task_id, result_obj)
+        self.runner_obj.notify_completed(self.task_id)
 
     def task_status(self):
         # TODO: finish return task status
         return 'PROC'
     
-    def __test_0(self):
+    def test_0(self):
         '''
         level 0 test code
         '''
         #create step
         step_obj = create_a_step({
-            "nane": "Level 0",
+            "name": "Level 0",
             "code_status": "PROC",
             "description": "Level 0 Test Performing"
         })
@@ -94,7 +110,7 @@ class Leveltest(abstract_test_task):
                 self.success_levels.append("0")
             
     
-    def __test_1(self):
+    def test_1(self):
         '''
         level 1 test code
         '''
@@ -114,7 +130,7 @@ class Leveltest(abstract_test_task):
             if isStepSuccess:
                 self.success_levels.append("1")
     
-    def __test_2(self):
+    def test_2(self):
         '''
         level 2 test code
         '''
@@ -134,7 +150,7 @@ class Leveltest(abstract_test_task):
             if isStepSuccess:
                 self.success_levels.append("2")
     
-    def __test_3(self):
+    def test_3(self):
         '''
         level 3 test code
         '''
@@ -154,7 +170,7 @@ class Leveltest(abstract_test_task):
             if isStepSuccess:
                 self.success_levels.append("3")
     
-    def __test_4(self):
+    def test_4(self):
         '''
         level 4 test code
         '''
@@ -169,7 +185,7 @@ class Leveltest(abstract_test_task):
             #get sequence resource
             sequence_resource_list = fhir_test_cases.get_resource_correct_cases("Sequence")
             isSuccessful = False
-            if len(sequence_resource) > 0:
+            if len(sequence_resource_list) > 0:
                 sequence_resource = sequence_resource_list[0]
                 sequence_resource = test_helper.set_reference(sequence_resource, self.server_info['url'], self.token)
                 sequence_resource['repository'] = gene_repository
@@ -177,14 +193,14 @@ class Leveltest(abstract_test_task):
                 if isSuccessful:
                     resource_id = None
                     #get resource id
-                    if response['resourceType'] == 'OperationOutcome':
+                    if response_json['resourceType'] == 'OperationOutcome':
                         try:
-                            issue_desc = response['issue'][0]
+                            issue_desc = response_json['issue'][0]
                             if issue_desc['severity'] == 'information':
                                 resource_id = issue_desc['diagnostics'].split('/')[1]
                         except:
                             pass
-                    elif response['resourceType'] == 'Sequence':
+                    elif response_json['resourceType'] == 'Sequence':
                         try:
                             resource_id = response['id']
                         except:
@@ -194,11 +210,16 @@ class Leveltest(abstract_test_task):
                         isSuccessful = isSuccessful & isRepoSuccessful
                     else:
                         isSuccessful = False
+            json_str = ''
+            try:
+                json_str = json.dumps(response_json)
+            except:
+                pass
             case_obj = create_a_case({
                 "code_status": 'S' if isSuccessful else 'F',
                 "name": "Sequence",
                 "description": 'Repository %s be read' % ('can' if isSuccessful else 'cannot'),
-                "http_response": response_json
+                "http_response": json_str
             })
             if case_obj:
                 push_case2step(step_obj.id, case_obj)
@@ -210,13 +231,21 @@ class Leveltest(abstract_test_task):
         read a resource with server
         '''
         isSuccessful, response_json = basic_fhir_operations.read_fhir_resource(self.server_info["url"], resource_type, self.token)
+        print isSuccessful, response_json
+        json_str = ''
+        try:
+            json_str = json.dumps(response_json)
+        except:
+            pass
         case_obj = create_a_case({
             "code_status": "S" if isSuccessful else "F",
             "name": resource_type,
-            "description": "%s can be readed",
-            "http_response": response_json
+            "description": "%s can be readed" % resource_type,
+            "http_response": json_str
         })
+        print case_obj
         if case_obj:
+            print 'case'
             push_case2step(step_id, case_obj)
         return (not case_obj is None) and isSuccessful
 
@@ -227,25 +256,31 @@ class Leveltest(abstract_test_task):
         #get test cases
         correct_cases = fhir_test_cases.get_resource_correct_cases(resource_type)
         wrong_cases = fhir_test_cases.get_resource_wrong_cases(resource_type)
+        res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
         # TODO: test with correct/wrong cases into methods
         isCorrectPassed = True
-        for case in correct_cases:
-            case = test_helper.set_reference(case, self.server_info['url'], self.token)
-            if extensions:
-                case['extension'] = extensions
-            isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
-            if not isSuccessful:
-                isCorrectPassed = False
-                case_obj = create_a_case({
-                    "code_status": "F",
-                    "name": resource_type,
-                    "description": "%s in correct format can not be processed" % resource_type,
-                    "http_response":response_json,
-                    "resource": case
-                })
-                if case_obj:
-                    push_case2step(step_id, case_obj)
+        if correct_cases:
+            for case in correct_cases:
+                case = test_helper.set_reference(case, self.server_info['url'], self.token, id_dict)
+                isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
+                if not isSuccessful:
+                    isCorrectPassed = False
+                    json_str = ''
+                    try:
+                        json_str = json.dumps(response_json)
+                    except:
+                        pass
+                    case_obj = create_a_case({
+                        "code_status": "F",
+                        "name": resource_type,
+                        "description": "%s in correct format can not be processed" % resource_type,
+                        "http_response":json_str,
+                        "resource": json.dumps(case)
+                    })
+                    if case_obj:
+                        print 'case'
+                        push_case2step(step_id, case_obj)
         if isCorrectPassed:
             case_obj = create_a_case({
                 "code_status": "S",
@@ -253,32 +288,38 @@ class Leveltest(abstract_test_task):
                 "description": "%s in correct format can be processed properly" % resource_type
             })
             if case_obj:
+                print 'case'
                 push_case2step(step_id, case_obj)
-            else:
-                isCorrectPassed = False
         isWrongPassed = True
-        for case in wrong_cases:
-            case = test_helper.set_reference(case, self.server_info['url'], self.token)
-            isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
-            if isSuccessful:
-                isWrongPassed = False
-                case_obj = create_a_case({
-                    "code_status": "F",
-                    "name": resource_type,
-                    "description": "%s in wrong format can not be processed" % resource_type,
-                    "http_response": response_json,
-                    "resource":case
-                })
-                if case_obj:
-                    push_case2step(step_id, case_obj)
+        if wrong_cases:
+            for case in wrong_cases:
+                case = test_helper.set_reference(case, self.server_info['url'], self.token)
+                isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
+                if isSuccessful:
+                    isWrongPassed = False
+                    json_str = ''
+                    try:
+                        json_str = json.dumps(response_json)
+                    except:
+                        pass
+                    case_obj = create_a_case({
+                        "code_status": "W",
+                        "name": resource_type,
+                        "description": "%s in wrong format can not be processed" % resource_type,
+                        "http_response": json_str,
+                        "resource":json.dumps(case)
+                    })
+                    if case_obj:
+                        print 'case'
+                        push_case2step(step_id, case_obj)
         if isWrongPassed:
             case_obj = create_a_case({
                 "code_status": "S",
                 "name": resource_type,
-                "description": "%s in correct format can be processed properly" % resource_type
+                "description": "%s in wrong format can be processed properly" % resource_type
             })
             if case_obj:
+                print 'case'
                 push_case2step(step_id, case_obj)
-                isWrongPassed = False
-        return isCorrectPassed and isWrongPassed
+        return isCorrectPassed
     
