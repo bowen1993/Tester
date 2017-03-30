@@ -19,16 +19,16 @@ var add_new_server = function(server_info){
     if( server_info.is_auth_required ){
         // create server auth
         var new_server_auth = new ServerAuthInfo({
-            client_id: server_info.client_id,
-            redirect_uri: server_info.redirect_uri,
-            auth_url:server_info.auth_url,
-            token_url:server_info.token_url
+            client_id: server_info.auth_info.client_id,
+            redirect_uri: server_info.auth_info.redirect_uri,
+            auth_url:server_info.auth_info.auth_url,
+            token_url:server_info.auth_info.token_url
         });
         try{
             ServerAuthInfoDao.create(new_server_auth);
             for( var scope in server_info.scopes ){
                 var new_server_scope = new ServerAuthScope({
-                    name: server_info.scopes[scope]
+                    name: server_info.auth_info.scopes[scope]
                 });
                 ServerAuthScopeDao.create(new_server_scope)
                 ServerAuthInfoDao.update({
@@ -52,6 +52,27 @@ var add_new_server = function(server_info){
         }
     }
     return true;
+}
+
+var update_server = function(server_id, server_info, server_info){
+    // check and update auth info first
+    if( server_info.is_auth_required ){
+        //update or create auth info
+        if( server_info.auth_info.id ){
+            // update server auth info
+            ///update scope first
+            if( server_info.auth_info.scopes.length > 0 ){
+                server_info.auth_info.scopes.map(scope_info => {
+                    
+                });
+            }
+            ServerAuthInfoDao.update({
+                id:server_info.auth_info.id
+            },server_info.auth_info)
+        }else{
+            // create new auth info
+        }
+    }
 }
 
 var all_servers = function(){

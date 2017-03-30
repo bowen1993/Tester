@@ -16,10 +16,6 @@ var get_resources = viewAction.get_resources;
 var get_user_task_history = viewAction.get_user_task_history;
 var search_task = viewAction.search_task;
 
-router.get('/', function(req, res, next) {
-	res.send('respond with a resource');
-});
-
 router.post('/addServer', function(req, res, next){
     console.log(req.body);
     isSuccessful = add_new_server(req.body);
@@ -137,7 +133,7 @@ router.get('/rmatrix', function(req, res, next){
 
 router.post('/ttime', function(req, res, next){
 	// all test time
-	var ttimes = ttime(req.body.times);
+	var ttimes = ttime(req.body);
 	console.log('times: ', ttimes);
 	res.json({
         isSuccessful:ttimes.isSuccessful,

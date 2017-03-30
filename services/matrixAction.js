@@ -184,12 +184,19 @@ var ttimeAction = function(tt){
         'times':[]
     }
     var ttype = tt['ttype'];
-    let time_list = TaskDao.find({
-        task_type:ttype
-    });
-    time_list.forEach(t => {
-        ttime.times.push(t.toUTCString());
-    });
+    try{
+        let time_list = TaskDao.find({
+            task_type:ttype
+        });
+        console.log(time_list);
+        time_list.forEach(t => {
+            ttimes.times.push(t.create_time.toUTCString());
+        });
+    }catch( err ){
+        console.log(err);
+        ttimes.isSuccessful = false;
+    }
+    
     return ttimes;
 }
 
