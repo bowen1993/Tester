@@ -48,6 +48,7 @@ class FHIRServer(Document):
 
 class Resource(Document):
     name = StringField(required=True, max_length=256)
+    type_code = IntField()
     meta = {
         'collection': 'resources',
         'strict': False

@@ -77,7 +77,7 @@ class Leveltest(abstract_test_task):
         })
         task_obj = get_task(self.task_id)
         if task_obj:
-            print 'create result'
+            #create results and with levels
             result_obj = create_a_result({
                 "code_status": 'S' if len(self.success_levels) == len(self.resources) else 'F'
             })

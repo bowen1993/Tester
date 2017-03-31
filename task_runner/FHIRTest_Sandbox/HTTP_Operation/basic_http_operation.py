@@ -1,5 +1,6 @@
 import requests
 import traceback
+import json
 
 def send_get(url, headers):
     '''
@@ -21,6 +22,8 @@ def send_post(url, headers, data):
     send http post request
     '''
     print url, headers
+    if isinstance(data, str):
+        data = json.loads(data)
     response = requests.post(url, json=data, headers=headers)
     response_json = None
     try:
