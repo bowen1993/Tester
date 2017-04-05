@@ -69,7 +69,6 @@ class Runner:
         create a new task instance
         '''
         task_config = self.__get_task_configs(task_id)
-        print task_config
         if task_config is None:
             return None
         task_clas_name = task_config['task_class']
@@ -84,7 +83,6 @@ class Runner:
             parameters = json.loads(task_config['parameters'])
             parameters['task_id'] = task_id
             parameters['runner_obj'] = self
-            print parameters
             new_task_obj = new_task_class(**parameters)
         except:
             traceback.print_exc()

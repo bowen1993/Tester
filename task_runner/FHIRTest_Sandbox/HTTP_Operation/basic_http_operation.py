@@ -6,14 +6,13 @@ def send_get(url, headers):
     '''
     send http get request
     '''
-    print url, headers
+    print url
     response = requests.get(url, headers=headers)
     response_json = None
     try:
-        print response.text
         response_json = response.json()
     except:
-        print traceback.print_exc()
+        traceback.print_exc()
         pass
     return response.status_code, response_json
 
@@ -21,16 +20,15 @@ def send_post(url, headers, data):
     '''
     send http post request
     '''
-    print url, headers
+    print url
     if isinstance(data, str):
         data = json.loads(data)
     response = requests.post(url, json=data, headers=headers)
     response_json = None
     try:
-        print response.text
         response_json = response.json()
     except:
-        print traceback.print_exc()
+        traceback.print_exc()
         pass
     return response.status_code, response_json
 
@@ -43,7 +41,7 @@ def send_put(url, headers, data):
     try:
         response_json = response.json()
     except:
-        print traceback.print_exc()
+        traceback.print_exc()
         pass
     return response.status_code, response_json
 
@@ -56,6 +54,6 @@ def send_delete(url, headers, data):
     try:
         response_json = response.json()
     except:
-        print traceback.print_exc()
+        traceback.print_exc()
         pass
     return response.status_code, response_json

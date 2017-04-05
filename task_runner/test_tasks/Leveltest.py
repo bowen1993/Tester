@@ -231,7 +231,7 @@ class Leveltest(abstract_test_task):
         read a resource with server
         '''
         isSuccessful, response_json = basic_fhir_operations.read_fhir_resource(self.server_info["url"], resource_type, self.token)
-        print isSuccessful, response_json
+        print isSuccessful
         json_str = ''
         try:
             json_str = json.dumps(response_json)
@@ -243,9 +243,7 @@ class Leveltest(abstract_test_task):
             "description": "%s can be readed" % resource_type,
             "http_response": json_str
         })
-        print case_obj
         if case_obj:
-            print 'case'
             push_case2step(step_id, case_obj)
         return (not case_obj is None) and isSuccessful
 
@@ -278,7 +276,6 @@ class Leveltest(abstract_test_task):
                         "resource": json.dumps(case)
                     })
                     if case_obj:
-                        print 'case'
                         push_case2step(step_id, case_obj)
         if isCorrectPassed:
             case_obj = create_a_case({
@@ -287,7 +284,6 @@ class Leveltest(abstract_test_task):
                 "description": "%s in correct format can be processed properly" % resource_type
             })
             if case_obj:
-                print 'case'
                 push_case2step(step_id, case_obj)
         isWrongPassed = True
         if wrong_cases:
@@ -309,7 +305,6 @@ class Leveltest(abstract_test_task):
                         "resource":json.dumps(case)
                     })
                     if case_obj:
-                        print 'case'
                         push_case2step(step_id, case_obj)
         if isWrongPassed:
             case_obj = create_a_case({
@@ -318,6 +313,5 @@ class Leveltest(abstract_test_task):
                 "description": "%s in wrong format can be processed properly" % resource_type
             })
             if case_obj:
-                print 'case'
                 push_case2step(step_id, case_obj)
         return isCorrectPassed

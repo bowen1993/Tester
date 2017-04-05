@@ -84,7 +84,6 @@ def read_repo(resource_type, resource_id, url, ga4gh_url, access_token):
         isReadSuccess = True
         variantId = None
         print 'response'
-        print response_json['repository']
         #get variant id
         try:
             variantId = response_json['repository'][0]['variantId']
