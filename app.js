@@ -24,7 +24,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors({origin: 'http://localhost:8001'}));
+app.use(cors());
 // app.use(session({secret:'dontpanic', access_token:'hello'}));
 app.use('/static', express.static(path.join(__dirname, '/public')));
 app.use(fibers);

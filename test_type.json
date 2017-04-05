@@ -42,11 +42,6 @@
             "isOptionable": false
         },
         {
-            "name":"5",
-            "type_code": 1,
-            "isOptionable": false
-        },
-        {
             "name": "Sequence",
             "type_code": 0,
             "isOptionable": true
