@@ -258,7 +258,6 @@ class Leveltest(abstract_test_task):
         wrong_cases = fhir_test_cases.get_resource_wrong_cases(resource_type)
         res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
-        # TODO: test with correct/wrong cases into methods
         isCorrectPassed = True
         if correct_cases:
             for case in correct_cases:
@@ -322,4 +321,3 @@ class Leveltest(abstract_test_task):
                 print 'case'
                 push_case2step(step_id, case_obj)
         return isCorrectPassed
-    
