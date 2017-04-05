@@ -5,6 +5,7 @@ echo "starting mongodb ..."
 mongod --quiet &
 echo "mongodb started, loading data..."
 cd /root/Conformance_Backend
+mongoimport -d fhirtest -c TestData --file TestCases --type json
 python load_test_type.py
 
 echo "data loaded, starting server..."
