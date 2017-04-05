@@ -185,7 +185,7 @@ class Leveltest(abstract_test_task):
             #get sequence resource
             sequence_resource_list = fhir_test_cases.get_resource_correct_cases("Sequence")
             isSuccessful = False
-            if len(sequence_resource_list) > 0:
+            if sequence_resource_list and len(sequence_resource_list) > 0:
                 sequence_resource = sequence_resource_list[0]
                 sequence_resource = test_helper.set_reference(sequence_resource, self.server_info['url'], self.token)
                 sequence_resource['repository'] = gene_repository
