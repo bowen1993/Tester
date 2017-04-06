@@ -13,6 +13,12 @@ def insert_task():
     new_task = Task(task_parameters="")
     new_task.save()
 
+def push_level2result(result_id, level_obj):
+    update_info = {
+        "push__level": level_obj
+    }
+    return update_a_result(result_id, update_info)
+
 def push_result2task(task_id, result_obj):
     update_info = {
         "result": result_obj
@@ -157,5 +163,12 @@ def get_server(server_id):
         traceback.print_exc()
         return None
 
-
+# CURD for Resource
+def get_resource_wit_name(resource_name, type_code):
+    try:
+        resource_obj = Resource.objects(name=resource_name, type_code=type_code).first()
+        return resource_obj
+    except:
+        traceback.print_exc()
+        return None
 

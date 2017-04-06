@@ -79,7 +79,7 @@ class FHIRResourceTest(abstract_test_task):
             pass
         case_obj = create_a_case({
             "code_status": "S" if isSuccessful else "F",
-            "name": resource_type,
+            "name": "%s.Read" % resource_type,
             "description": "%s can be readed" % resource_type,
             "http_response": json_str
         })
@@ -111,7 +111,7 @@ class FHIRResourceTest(abstract_test_task):
                         pass
                     case_obj = create_a_case({
                         "code_status": "F",
-                        "name": resource_type,
+                        "name": "%s.Write" % resource_type,
                         "description": "%s in correct format can not be processed" % resource_type,
                         "http_response":json_str,
                         "resource": json.dumps(case)
@@ -121,7 +121,7 @@ class FHIRResourceTest(abstract_test_task):
         if isCorrectPassed:
             case_obj = create_a_case({
                 "code_status": "S",
-                "name": resource_type,
+                "name": "%s.Write" % resource_type,
                 "description": "%s in correct format can be processed properly" % resource_type
             })
             if case_obj:
@@ -140,7 +140,7 @@ class FHIRResourceTest(abstract_test_task):
                         pass
                     case_obj = create_a_case({
                         "code_status": "W",
-                        "name": resource_type,
+                        "name": "%s.Write" % resource_type,
                         "description": "%s in wrong format can not be processed" % resource_type,
                         "http_response": json_str,
                         "resource":json.dumps(case)
@@ -150,7 +150,7 @@ class FHIRResourceTest(abstract_test_task):
         if isWrongPassed:
             case_obj = create_a_case({
                 "code_status": "S",
-                "name": resource_type,
+                "name": "%s.Write" % resource_type,
                 "description": "%s in wrong format can be processed properly" % resource_type
             })
             if case_obj:

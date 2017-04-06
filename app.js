@@ -9,8 +9,9 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var home = require('./routes/home');
 var account = require('./routes/account');
+var listener = require('./routes/listener');
 var cors = require('cors');
-
+var timeout = require('connect-timeout')
 var app = express();
 var expressWs = require('express-ws')(app);
 
@@ -25,12 +26,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
+app.use(timeout(30000));
 // app.use(session({secret:'dontpanic', access_token:'hello'}));
 app.use('/static', express.static(path.join(__dirname, '/public')));
 app.use(fibers);
 app.use('/', routes);
 app.use('/home', home);
 app.use('/account', account);
+app.use('/listener', listener);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

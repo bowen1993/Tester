@@ -41,7 +41,7 @@ genetic_profile_extensions = [
       }
     }
 ]
-gene_repository = [{"url": "https://www.googleapis.com/genomics/v1beta2", "name": "ga4gh", "variantId": "A1A2"}]
+gene_repository = [{"url": "http://1kgenomes.ga4gh.org/references/", "name": "ga4gh", "variantId": "A1A2"}]
 
 
 ga4gh_url = "http://1kgenomes.ga4gh.org"
@@ -67,7 +67,6 @@ class Leveltest(abstract_test_task):
             return
         if self.server_info["is_auth_required"]:
             self.token = basic_fhir_operations.basicOAuth(self.server_info["auth_info"], self.server_info["auth_url"])
-        # TODO: finish level test
         for level in self.resources:
             test_method_name = "test_%s" % level
             getattr(self, test_method_name)()
@@ -81,6 +80,12 @@ class Leveltest(abstract_test_task):
             result_obj = create_a_result({
                 "code_status": 'S' if len(self.success_levels) == len(self.resources) else 'F'
             })
+            # add levels
+            if result_obj:
+                for level_name in self.success_levels:
+                    level_obj = get_resource_wit_name(level_name, 1)
+                    if level_obj:
+                        push_level2result(result_obj.id, level_obj)
             push_result2task(self.task_id, result_obj)
         self.runner_obj.notify_completed(self.task_id)
 

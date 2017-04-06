@@ -53,8 +53,9 @@ io.on('connection', function(socket){
     console.log(taskid);
     socket.join(taskid);
     Fiber(function(){
+      var counter = 0;
       console.log(taskid);
-      while( true ){
+      while( counter < 1000 ){
         var steps = taskAction.get_task_steps(taskid);
         console.log('sending step')
         if( steps.result ){
@@ -62,10 +63,11 @@ io.on('connection', function(socket){
           break;
         }else{
           io.sockets.in(taskid).emit('result', steps);
+          counter += 1;
         }
         sleep.msleep(200);
-        
       }
+      socket.disconnect(true);
       Fiber.yield();
     }).run();
   });
