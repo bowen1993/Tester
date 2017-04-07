@@ -15,11 +15,12 @@ def validater():
 	request_json = request.json
 	print request_json['resource']
 	data = request_json['resource']
-
-	datatype = data['resourceType']
-	version = request_json['version']
-	result = fhir_validator.parse(datatype, data, version)
-	res = jsonify({"is_validate": result})
+	is_validate = False
+	if 'resourceType' in data:
+		datatype = data['resourceType']
+		version = request_json['version']
+		is_validate = fhir_validator.parse(datatype, data, version)
+	res = jsonify({"is_validate": is_validate})
 	return res
 
 if __name__ == '__main__':
