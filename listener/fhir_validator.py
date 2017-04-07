@@ -212,6 +212,16 @@ def get_resource_spec(resourceType, version):
     else:
         return None
 
+def get_resource_extensions(data):
+    extension_list = []
+    if 'extension' in data:
+        for ext in data['extension']:
+            ext_url = ext['url']
+            if '/' in ext_url:
+                ext_name = ext_url[ext_url.rfind('/')+1:]
+                extension_list.append(ext_name)
+    return extension_list
+
 def parse(datatype, data, version=1):
     #get datatype spec
     spec = None
@@ -225,6 +235,12 @@ def parse(datatype, data, version=1):
         for element in elements:
             if not element.validate(data):
                 print element.get_element_path()
-                return False
-        
+                return False    
     return True
+
+def run_validate(datatype, data, version=1):
+    is_validate = parse(datatype, data, version)
+    extension_list = []
+    if is_validate:
+        extension_list = get_resource_extensions(data)
+    return is_validate, extension_list
