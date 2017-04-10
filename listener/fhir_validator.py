@@ -203,7 +203,7 @@ def get_resource_spec(resourceType, version):
                     if 'code' not in et:
                         continue
                     ele_type.append(et['code'])
-                    if "Reference" == et['code']:
+                    if "Reference" == et['code'] and 'targetProfile' in et:
                         refs.append( et['targetProfile'][et['targetProfile'].rindex('/')+1:])
                 new_ele['definition']['type'] = list(set(ele_type))
                 new_ele['definition']['reference_type'] = list(set(refs))
