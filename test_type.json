@@ -60,6 +60,11 @@
             "name": "FamilyMemberHistory",
             "type_code": 0,
             "isOptionable": true
+        },
+        {
+            "name": "ProcedureRequest",
+            "type_code": 0,
+            "isOptionable": true
         }
     ]
 }
