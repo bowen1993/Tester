@@ -239,6 +239,8 @@ def parse(datatype, data, version=1):
     return True
 
 def run_validate(datatype, data, version=1):
+    if 'text' in data:
+        del data['text']
     is_validate = parse(datatype, data, version)
     extension_list = []
     if is_validate:
