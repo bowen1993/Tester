@@ -41,6 +41,11 @@ router.get('/serverInfo', function(req, res, next){
     res.json(result);
 });
 
+router.post('/ping', function(req, res, next){
+    var url = req.body.url;
+    serverAction.ping_server(url, res);
+});
+
 router.post('/deleteServer', function(req, res, next) {
     var server_id = req.body.id;
     var isSuccessful = delete_server(server_id);

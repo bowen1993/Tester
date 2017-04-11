@@ -5,6 +5,7 @@ let ServerAuthInfo = models.ServerAuthInfo;
 let ServerAuthInfoDao = models.ServerAuthInfoDao;
 let ServerAuthScope = models.ServerAuthScope;
 let ServerAuthScopeDao = models.ServerAuthScopeDao;
+let requestify = require('requestify');
 
 
 var add_new_server = function(server_info){
@@ -83,6 +84,18 @@ var all_servers = function(){
     return format_servers;
 }
 
+var ping_server = function(url, res){
+    requestify.get(url).then( response => {
+        res.json({
+            is_reachable: true
+        });
+    }).fail( error => {
+        res.json({
+            is_reachable: false
+        });
+    });
+}
+
 var delete_server = function(server_id){
     var server = ServerDao.findOne({
         id:server_id
@@ -125,5 +138,6 @@ module.exports = {
     all_servers,
     delete_server,
     get_server_obj,
-    get_server_info
+    get_server_info,
+    ping_server
 }
