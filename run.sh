@@ -4,9 +4,10 @@ redis-server &
 echo "starting mongodb ..."
 mongod --quiet &
 echo "mongodb started, loading data..."
+sleep 1;
 cd /root/Conformance_Backend
-mongoimport -d fhirtest -c TestData --file TestCases --type json
 python load_test_type.py
+mongoimport -d fhirtest -c TestData --file TestCases --type json
 
 echo "data loaded, starting server..."
 export C_FORCE_ROOT=true
