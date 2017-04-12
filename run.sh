@@ -14,4 +14,4 @@ export C_FORCE_ROOT=true
 python listener/fhir_flask.py &
 python -m task_runner &
 celery -A task_runner.tasks worker &
-npm start
+node-supervisor ./bin/www
