@@ -11,6 +11,7 @@ COPY . /root/Conformance_Backend
 WORKDIR /root/Conformance_Backend
 RUN pip install -r requirements.txt
 RUN pip install -U "celery[redis]"
+RUN npm install -g node-supervisor
 RUN npm install
 EXPOSE 3000
 CMD ["./run.sh"]
