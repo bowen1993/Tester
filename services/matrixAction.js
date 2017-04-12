@@ -1,9 +1,10 @@
 let config = require('../config');
 let models = require('../models');
+let taskAction = require('./taskAction');
 let Resource = models.Resource;
 let ResourceDao = models.ResourceDao;
 let Level = models.Level;
-let levelDao = models.LevelDao;
+let LevelDao = models.LevelDao;
 let FHIRServer = models.FHIRServer;
 let FHIRServerDao = models.FHIRServerDao;
 let Task = models.Task;
@@ -200,23 +201,98 @@ var ttimeAction = function(tt){
     return ttimes;
 }
 
-var cmatrixAction = function(cmat){
-    var ttype = String(cmat.ttype)
-    var cmatrix = {
-        'isSuccessful':true,
-        'matrix':{}
+var form_matrix = function(task_type_id, task_time){
+    datas = {
+        'servers':[],
+        'resources':[],
+        'links':[]
     }
-    var ttime = "";
-    if (cmat['time'] != undefined){
-        ttime = cmat['time'];
+    console.log(task_type_id)
+    // get task type, resources and servers
+    var task_type_obj = taskAction.get_task_type_obj(task_type_id);
+    if ( !task_type_obj ){
+        console.log('task object missing')
+        return datas;
     }
-    console.log(ttime,ttype);
-    cmatrix['matrix'] = form_matrix(ttype, ttime)
-    return cmatrix;
+    var resource_dict = {};
+    var task_type_info = task_type_obj.toObject({
+            recursive: true
+        });
+    console.log(task_type_info);
+    task_type_info.related_resources.map( resource => {
+        console.log(resource.name)
+        var resource_key = resource.name
+        if( resource.name.length == 1 ){
+            resource_key = "Level " + resource.name
+        }
+        var new_index = datas.resources.push(resource_key) -1;
+        console.log(resource_key);
+        resource_dict[resource_key] = new_index;
+    });
+    console.log(resource_dict);
+    var server_dict = {};
+    var servers = FHIRServerDao.find({});
+    servers.map( server => {
+        var new_index = datas.servers.push(server.name) - 1;
+        server_dict[server.name] = new_index;
+    });
+    console.log(server_dict);
+    //get tasks
+    var task_list = null;
+    if( task_time && task_time.length > 0 ){
+        task_list = TaskDao.find({
+            task_type:task_type_obj,
+            code_status: {$in: ["F", "S"]},
+            create_time: new Date(task_time)
+        });
+    }else{
+        task_list = TaskDao.find({
+            task_type:task_type_obj,
+            code_status: {$in: ["F", "S"]},
+        });
+    }
+    if( task_list ){
+        task_info_list = Task.toObjectArray(task_list, {recursive:true});
+        console.log(task_info_list);
+        task_info_list.map(task_obj => {
+            var server_index = server_dict[task_obj.target_server.name];
+            task_obj.steps.map(step_obj => {
+                var resource_index = resource_dict[step_obj.name];
+                if( server_index != undefined ){
+                    console.log({
+                        "source":server_index,
+                        "target": resource_index,
+                        "value": step_obj.code_status === "S" ? 1 : 0
+                    });
+                    datas.links.push({
+                        "source":server_index,
+                        "target": resource_index,
+                        "value": step_obj.code_status === "S" ? 1 : 0
+                    });
+                }
+            });
+        });
+    }
+    return datas;
 }
+
+// var cmatrixAction = function(cmat){
+//     var ttype = String(cmat.ttype)
+//     var cmatrix = {
+//         'isSuccessful':true,
+//         'matrix':{}
+//     }
+//     var ttime = "";
+//     if (cmat['time'] != undefined){
+//         ttime = cmat['time'];
+//     }
+//     console.log(ttime,ttype);
+//     cmatrix['matrix'] = form_matrix(ttype, ttime)
+//     return cmatrix;
+// }
 
 module.exports = {
     rmatrixAction,
     ttimeAction,
-    cmatrixAction
+    form_matrix
 }

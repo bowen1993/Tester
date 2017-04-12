@@ -149,11 +149,27 @@ var get_task_types = function(){
     return task_type_list;
 }
 
+var get_task_times = function(task_type_id){
+    var task_type_obj = get_task_type_obj(task_type_id);
+    var res = [];
+    if( task_type_obj ){
+        task_list = TaskDao.find({task_type:task_type_obj});
+        task_time_list = Task.toObjectArray(task_list, {includes:['create_time']});
+        console.log(task_time_list);
+        task_time_list.map(task_time => {
+            res.push(task_time.create_time.toISOString());
+        });
+    }
+    return res;
+}
+
 module.exports = {
     create_new_task,
     get_task_info,
     pre_process_task_info,
     get_task_types,
     get_task_result,
-    get_task_steps
+    get_task_steps,
+    get_task_times,
+    get_task_type_obj
 }
