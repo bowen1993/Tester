@@ -225,7 +225,7 @@ var form_matrix = function(task_type_id, task_time){
         if( resource.name.length == 1 ){
             resource_key = "Level " + resource.name
         }
-        var new_index = datas.resources.push(resource_key) -1;
+        var new_index = datas.resources.push({name:resource_key}) -1;
         console.log(resource_key);
         resource_dict[resource_key] = new_index;
     });
@@ -233,7 +233,7 @@ var form_matrix = function(task_type_id, task_time){
     var server_dict = {};
     var servers = FHIRServerDao.find({});
     servers.map( server => {
-        var new_index = datas.servers.push(server.name) - 1;
+        var new_index = datas.servers.push({name:server.name}) - 1;
         server_dict[server.name] = new_index;
     });
     console.log(server_dict);
