@@ -51,7 +51,10 @@ let Level = um.model.createModel('Level', {
 let Resource = um.model.createModel('Resource', {
     name: Text(),
     type_code: Integer(),
-    isOptionable: Bool()
+    isOptionable: Bool(),
+    version: UObject({
+        type: "FHIRVersion"
+    })
 });
 
 let Case = um.model.createModel('Case', {
@@ -74,6 +77,13 @@ let Step = um.model.createModel('Step', {
     })
 });
 
+let FHIRVersion = um.model.createModel('FHIRVersion' ,{
+    name: Text(),
+    number: Text(),
+    url: Text(),
+    index_url: Text()
+})
+
 let TaskType = um.model.createModel('TaskType', {
     name: Text(),
     task_class: Text(),
@@ -89,6 +99,9 @@ let Task = um.model.createModel('Task', {
     task_parameters: Text(),
     task_type: UObject({
         type: 'TaskType'
+    }),
+    fhir_version: UObject({
+        type:"FHIRVersion"
     }),
     code_status: Text(),
     create_time : DateTime(),
@@ -122,6 +135,7 @@ let TaskTypeDao = session.getDao(TaskType);
 let ResultDao = session.getDao(Result);
 let ServerAuthInfoDao = session.getDao(ServerAuthInfo);
 let ServerAuthScopeDao = session.getDao(ServerAuthScope);
+let FHIRVersionDao = session.getDao(FHIRVersion);
 
 module.exports = {
     User,
@@ -145,5 +159,7 @@ module.exports = {
     TaskTypeDao,
     ResultDao,
     ServerAuthInfoDao,
-    ServerAuthScopeDao
+    ServerAuthScopeDao,
+    FHIRVersion,
+    FHIRVersionDao
 }

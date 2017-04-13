@@ -58,9 +58,9 @@ class Runner:
         if task_instance is None:
             return None
         task_config = {
-
             'parameters': task_instance.task_parameters,
-            'task_class': task_instance.task_type.task_class
+            'task_class': task_instance.task_type.task_class,
+            'version':task_instance.fhir_version.number
         }
         return task_config
 
@@ -83,6 +83,7 @@ class Runner:
             parameters = json.loads(task_config['parameters'])
             parameters['task_id'] = task_id
             parameters['runner_obj'] = self
+            parameters['version'] = task_config['version']
             new_task_obj = new_task_class(**parameters)
         except:
             traceback.print_exc()

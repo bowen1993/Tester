@@ -97,6 +97,20 @@ router.get('/get_resources', function(req, res, next){
     res.json(result);
 });
 
+router.get('/all_versions', function(req, res, next){
+    var results = {
+        isSuccessful: true,
+        versions: []
+    };
+    try{
+        var fhir_versions = taskAction.get_versions();
+    }catch( err ){
+        console.log(err);
+    }
+    var fhir_versions = taskAction.get_versions();
+    results.versions = fhir_versions;
+    res.json(results);
+})
 // router.get('/get_user_task_history', function(req, res, next){
 //     try{
 //         var user_token = req.query.token;
@@ -181,11 +195,12 @@ router.post('/ttime', function(req, res, next){
 router.post('/cmatrix', function(req, res, next){
     console.log(req.body)
     var task_type_id = req.body.task_type;
+    var version_id = req.body.version;
     var task_time = null;
     if( req.body.hasOwnProperty('time') ){
         task_time = req.body.time;
     }
-    var matrix_data = matrixAction.form_matrix(task_type_id, task_time);
+    var matrix_data = matrixAction.form_matrix(version_id, task_type_id, task_time);
     res.json({
         isSuccessful:true,
         matrix:matrix_data

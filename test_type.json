@@ -19,52 +19,162 @@
         {
             "name":"0",
             "type_code": 1,
-            "isOptionable": false
+            "isOptionable": false,
+            "version": "1.8.0"
         },
         {
             "name":"1",
             "type_code": 1,
-            "isOptionable": false
+            "isOptionable": false,
+            "version": "1.8.0"
         },
         {
             "name":"2",
             "type_code": 1,
-            "isOptionable": false
+            "isOptionable": false,
+            "version": "1.8.0"
         },
         {
             "name":"3",
             "type_code": 1,
-            "isOptionable": false
+            "isOptionable": false,
+            "version": "1.8.0"
         },
         {
             "name":"4",
             "type_code": 1,
-            "isOptionable": false
+            "isOptionable": false,
+            "version": "1.8.0"
+        },
+        {
+            "name":"0",
+            "type_code": 1,
+            "isOptionable": false,
+            "version": "3.0.0"
+        },
+        {
+            "name":"1",
+            "type_code": 1,
+            "isOptionable": false,
+            "version": "3.0.0"
+        },
+        {
+            "name":"2",
+            "type_code": 1,
+            "isOptionable": false,
+            "version": "3.0.0"
+        },
+        {
+            "name":"3",
+            "type_code": 1,
+            "isOptionable": false,
+            "version": "3.0.0"
+        },
+        {
+            "name":"4",
+            "type_code": 1,
+            "isOptionable": false,
+            "version": "3.0.0"
         },
         {
             "name": "Sequence",
             "type_code": 0,
-            "isOptionable": true
+            "isOptionable": true,
+            "version": "3.0.0"
         },
         {
             "name": "Observation",
             "type_code": 0,
-            "isOptionable": true
+            "isOptionable": true,
+            "version": "3.0.0"
         },
         {
             "name": "DiagnosticReport",
             "type_code": 0,
-            "isOptionable": true
+            "isOptionable": true,
+            "version": "3.0.0"
         },
         {
             "name": "FamilyMemberHistory",
             "type_code": 0,
-            "isOptionable": true
+            "isOptionable": true,
+            "version": "3.0.0"
         },
         {
             "name": "ProcedureRequest",
             "type_code": 0,
-            "isOptionable": true
+            "isOptionable": true,
+            "version": "3.0.0"
+        },
+        {
+            "name": "Sequence",
+            "type_code": 0,
+            "isOptionable": true,
+            "version": "1.8.0"
+        },
+        {
+            "name": "Observation",
+            "type_code": 0,
+            "isOptionable": true,
+            "version": "1.8.0"
+        },
+        {
+            "name": "DiagnosticReport",
+            "type_code": 0,
+            "isOptionable": true,
+            "version": "1.8.0"
+        },
+        {
+            "name": "FamilyMemberHistory",
+            "type_code": 0,
+            "isOptionable": true,
+            "version": "1.8.0"
+        },
+        {
+            "name": "DiagnosticRequest",
+            "type_code": 0,
+            "isOptionable": true,
+            "version": "1.8.0"
+        }
+    ],
+    "versions":[
+        {
+            "name": "STU3 Jan 2017",
+            "number": "1.8.0",
+            "index_url": "http://hl7.org/fhir/2017Jan/index.html",
+            "url": "http://hl7.org/fhir/2017Jan/"
+        },
+        {
+            "name": "STU3 Final",
+            "number": "3.0.0",
+            "index_url": "http://hl7.org/fhir/STU3/index.html",
+            "url": "http://hl7.org/fhir/STU3/"
+        }
+    ],
+    "servers":[
+        {
+            "name": "Wildfhir STU3",
+            "url": "http://wildfhir.aegis.net/fhir1-6-0",
+            "is_auth_required": false,
+            "is_deleted": false
+        },
+        {
+            "name": "Grahame STU3",
+            "url": "http://fhir3.healthintersections.com.au/open",
+            "is_auth_required": false,
+            "is_deleted": false
+        },
+        {
+            "name": "HAPI Public STU3",
+            "url": "http://fhirtest.uhn.ca/baseDstu3",
+            "is_auth_required": false,
+            "is_deleted": false
+        },
+        {
+            "name": "NMDP-HAPI",
+            "url": "http://fhirtest.b12x.org/baseDstu3",
+            "is_auth_required": false,
+            "is_deleted": false
         }
     ]
 }

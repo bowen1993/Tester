@@ -1,29 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import pymongo
-import json
+import sys
+import os
 from pymongo import MongoClient
 import configparser
-import os
-
-
 
 
 class DataBaseOperation():
     __config__ = configparser.ConfigParser()
-    __config__.read( os.path.join(os.getcwd(), 'task_runner/FHIRTest_Sandbox/FHIR_Operation/conf.py') )
-    __db_host__ = __config__.get('mongodb','db_host')
-    __db_database__ = __config__.get('mongodb','db_database')
-    # __db_user__ = __config__.get('mongodb','db_user')
-    # __db_pwd__ = __config__.get('mongodb','db_pwd')
-    __db_port__ = __config__.get('mongodb','db_port')
-    __db_collection__ = __config__.get('mongodb','db_collection')
+    __config__.read( os.path.join(os.getcwd(), 'task_runner/FHIRTest_Sandbox/FHIR_Operation/conf.py' ) )
+    __db_host__ = __config__.get('Mongodb','db_host')
+    __db_database__ = __config__.get('Mongodb','db_database')
+    __db_port__ = __config__.get('Mongodb','db_port')
 
-    global null
-    null = None
-
-    # 建立连接
-    def __connection__(self):
+    # 打开连接
+    def __connections__(self):
         # client = MongoClient(self.__db_host__,int(self.__db_port__))
         # print self.__db_user__,self.__db_pwd__
         # client['FHIR'].authenticate(self.__db_user__,self.__db_pwd__)
@@ -38,68 +29,134 @@ class DataBaseOperation():
 
     # 关闭连接
     def __close__(self):
-        #self.__client__.disconnect()
-        pass
+        self.__client__.close()
 
-    # 我将Postgresql来的数据导入到 Mongodb中
-    def InsertfromPostgreSql(self):
-        db = self.__connection__()
-        collection = db[self.__db_collection__]
-        ps = PostgreSqlDataOperation.DataBaseOperation()
-        list = ps.selectAllcases()
-        print len(list)
-        for i in list:
-            newdict = {}
-            newdict['version'] = i[1]
-            newdict['resourcename'] = i[2]
-            newdict['testcase'] = eval(i[3])
-            newdict['correct'] = i[4]
-            collection.insert(newdict)
-        self.__close__()
-
-    # 判断我这个 版本 和 resource 在数据库中是否存在
-    def selectVersionnResource(self,version,resourceName):
-        db = self.__connection__()
-        collection = db[self.__db_collection__]
-        ss = collection.find_one({'version': version, 'resourcename': resourceName})
-        self.__close__()
-        if ss:
-            return True
-        return False
-
-    # 存在的话返回 list
-    def selectrows(self,parameters):
-        db = self.__connection__()
-        collection = db[self.__db_collection__]
-
-        ss = collection.find({'version':parameters[0],'resourcename':parameters[1],'correct':parameters[2]})
-        # del ss["_id"]
-        self.__close__()
-        if ss:
-            list = [json.dumps(x['testcase']) for x in ss]
-            return list
-        return None
-
-    def InsertOperation(self):
-        pass
-
-    # 计算总共有多少行数据
-    def selectCount(self):
+    # 插入数据到 DataType里面
+    def InsertToDataType(self,parameters):
+        Flag = False
+        db = self.__connections__()
         try:
-            db = self.__connection__()
-            collection = db[self.__db_collection__]
+            dbcollection = self.__config__.get('Mongodb','db_collection4DataType')
+            collection = db[dbcollection]
 
-            scount = collection.count()
+            if isinstance(parameters,dict):
+                jsondict = parameters
+            else:
+                jsondict = {}
+                jsondict['Version'] = parameters[0]
+                jsondict['DataType'] = parameters[1]
+                jsondict['TypeName'] = parameters[2]
+                jsondict['Value'] = parameters[3]
+
+            collection.insert(jsondict)
+            Flag = True
+        except Exception,e:
+            print 'InsertDataType Wrong:',e
+        finally:
             self.__close__()
-            return scount
+        return Flag
+
+    # 插入数据到 Analyzer 里面
+    def InsertToAnalyzer(self,parameters):
+        Flag = False
+        db = self.__connections__()
+        try:
+            dbcollection = self.__config__.get('Mongodb', 'db_collection4Analyzer')
+            collection = db[dbcollection]
+
+            if isinstance(parameters, dict):
+                jsondict = parameters
+            else:
+                jsondict = {}
+                jsondict['version'] = parameters[0]
+                jsondict['resourceName'] = parameters[1]
+                jsondict['AnalyzerJson'] = parameters[2]
+
+            collection.insert(jsondict)
+            Flag = True
+        except Exception, e:
+            print 'InsertDataType Wrong:', e
+        finally:
+            self.__close__()
+        return Flag
+
+    # 插入数据到 TestCase 里面
+    def InsertToTestCase(self,parameters):
+        Flag = False
+        db = self.__connections__()
+        try:
+            dbcollections = self.__config__.get('Mongodb','db_collection4testcase')
+            collection = db[dbcollections]
+
+            jsondict = {}
+            jsondict['version'] = parameters[0]
+            jsondict['resourcename'] = parameters[1]
+            jsondict['testcase'] = parameters[2]
+            jsondict['correct'] = parameters[3]
+            if len(parameters) == 5:
+                jsondict['constraint'] = parameters[4]
+
+            collection.insert(jsondict)
+            Flag = True
+        except Exception,e:
+            print 'InserToTestCase Wrong:',e
+        finally:
+            self.__close__()
+        return Flag
+
+    # 插入数据到 Version 里面
+    def InsertToVersion(self,parameters):
+        Flag = False
+        db = self.__connections__()
+        try:
+            dbcollections = self.__config__.get('Mongodb', 'db_collection4Version')
+            collection = db[dbcollections]
+
+            jsondict = {}
+            jsondict['version'] = parameters[0]
+            jsondict['versionhtml'] = parameters[1]
+
+            collection.insert(jsondict)
+            Flag = True
+        except Exception, e:
+            print 'InserToTestCase Wrong:', e
+        finally:
+            self.__close__()
+        return Flag
+
+    # 查询 某个collection 里面的数据，附带上查询条件 findway
+    def SelectForlist(self,dbcollection,findway):
+        db = self.__connections__()
+        collection = db[dbcollection]
+        listtable = []
+        try:
+            # print findway
+            returnlist = collection.find(findway)
+            for x in returnlist:
+                del x["_id"]
+                listtable.append(x)
         except Exception,e:
             print e
+        self.__close__()
+
+        if len(listtable)>0:
+            return listtable
+        else:
+            return None
+
+    # 返回某个 collection 查询的数量
+    def SelectForCount(self,dbcollection,findway):
+        listcount = 0
+        db = self.__connections__()
+        collection = db[dbcollection]
+        try:
+            listcount = collection.count(findway)
+        except Exception,e:
+            print e
+        self.__close__()
+
+        return listcount
 
 
-# db = DataBaseOperation()
-# print db.selectCount()
-# parameters = []
-# parameters.append('1.9.0')
-# parameters.append('Specimen')
-# parameters.append(1)
-# db.selectrows(parameters)
+
+

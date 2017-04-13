@@ -7,9 +7,11 @@ let TaskType = models.TaskType;
 let TaskTypeDao = models.TaskTypeDao;
 let Result = models.Result;
 let ResultDao = models.ResourceDao;
+let FHIRVersion = models.FHIRVersion;
+let FHIRVersionDao = models.FHIRVersionDao;
 
 
-var task_keywords = ['target_server', 'task_type', 'code_status', 'username']
+var task_keywords = ['target_server', 'task_type', 'code_status', 'username', 'version']
 
 var validate_task_info = function(task_info){
     // validate task info
@@ -38,17 +40,20 @@ var pre_process_task_info = function(task_info){
 
 var create_new_task = function(task_info){
     var server_obj = serverAction.get_server_obj(task_info.target_server);
+    var version_obj = get_version_obj(task_info.version.id);
+
     var user_obj = userAction.get_user_obj(task_info.username);
     var task_type_obj = get_task_type_obj(task_info.task_type);
 
-    if( !task_type_obj ){
-        console.log("Invalid task type");
+    if( !task_type_obj || !version_obj ){
+        console.log("Invalid task type or version");
         return null;
     }
     console.log('creatig task');
     console.log(task_info);
     var new_task = new Task({
         task_type:task_type_obj,
+        fhir_version:version_obj,
         task_parameters: JSON.stringify(task_info.parameters),
         code_status: 'WTNG',
         create_time: Date.now(),
@@ -112,6 +117,29 @@ var get_task_steps = function(task_id){
     return null;
 }
 
+var get_version_obj = function(version_id){
+    var version_obj = null;
+    try{
+        version_obj = FHIRVersionDao.findOne({id:version_id})
+
+    }catch( err ){
+        console.log(err);
+    }
+    return version_obj;
+}
+
+var get_versions = function(){
+    var versions = FHIRVersionDao.find({});
+    if( versions ){
+        return FHIRVersion.toObjectArray(versions, {
+            recursive:true
+        });
+    }
+    else{
+        return []
+    }
+}
+
 var get_task_result = function(task_id){
     console.log(task_id)
     try{
@@ -138,7 +166,7 @@ var get_task_type_obj = function(task_type_id){
     return task_type_obj;
 }
 
-var get_task_types = function(){
+var get_task_types = function(version_id){
     task_type_list = [];
     try{
         task_types = TaskTypeDao.find({});
@@ -171,5 +199,7 @@ module.exports = {
     get_task_result,
     get_task_steps,
     get_task_times,
-    get_task_type_obj
+    get_task_type_obj,
+    get_versions,
+    get_version_obj
 }

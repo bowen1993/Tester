@@ -201,7 +201,7 @@ var ttimeAction = function(tt){
     return ttimes;
 }
 
-var form_matrix = function(task_type_id, task_time){
+var form_matrix = function(version_id, task_type_id, task_time){
     datas = {
         'servers':[],
         'resources':[],
@@ -210,8 +210,13 @@ var form_matrix = function(task_type_id, task_time){
     console.log(task_type_id)
     // get task type, resources and servers
     var task_type_obj = taskAction.get_task_type_obj(task_type_id);
+    var version_obj = taskAction.get_version_obj(version_id);
     if ( !task_type_obj ){
         console.log('task object missing')
+        return datas;
+    }
+    if( !version_obj ){
+        console.log('version object missing')
         return datas;
     }
     var resource_dict = {};
@@ -220,14 +225,16 @@ var form_matrix = function(task_type_id, task_time){
         });
     console.log(task_type_info);
     task_type_info.related_resources.map( resource => {
-        console.log(resource.name)
-        var resource_key = resource.name
-        if( resource.name.length == 1 ){
-            resource_key = "Level " + resource.name
+        console.log(resource.name, resource.version.number, version_obj.number)
+        if( resource.version.number == version_obj.number ){
+            var resource_key = resource.name
+            if( resource.name.length == 1 ){
+                resource_key = "Level " + resource.name
+            }
+            var new_index = datas.resources.push({name:resource_key}) -1;
+            console.log(resource_key);
+            resource_dict[resource_key] = new_index;
         }
-        var new_index = datas.resources.push({name:resource_key}) -1;
-        console.log(resource_key);
-        resource_dict[resource_key] = new_index;
     });
     console.log(resource_dict);
     var server_dict = {};
@@ -242,23 +249,25 @@ var form_matrix = function(task_type_id, task_time){
     if( task_time && task_time.length > 0 ){
         task_list = TaskDao.find({
             task_type:task_type_obj,
+            fhir_version: version_obj,
             code_status: {$in: ["F", "S"]},
             create_time: new Date(task_time)
         });
     }else{
         task_list = TaskDao.find({
             task_type:task_type_obj,
+            fhir_version: version_obj,
             code_status: {$in: ["F", "S"]},
         });
     }
     if( task_list ){
         task_info_list = Task.toObjectArray(task_list, {recursive:true});
-        console.log(task_info_list);
         task_info_list.map(task_obj => {
+            console.log(task_obj.fhir_version.number, task_obj.task_type.name);
             var server_index = server_dict[task_obj.target_server.name];
             task_obj.steps.map(step_obj => {
                 var resource_index = resource_dict[step_obj.name];
-                if( server_index != undefined ){
+                if( server_index != undefined && resource_index != undefined){
                     console.log({
                         "source":server_index,
                         "target": resource_index,

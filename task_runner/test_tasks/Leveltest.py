@@ -47,12 +47,13 @@ gene_repository = [{"url": "http://1kgenomes.ga4gh.org/references/", "name": "ga
 ga4gh_url = "http://1kgenomes.ga4gh.org"
 
 class Leveltest(abstract_test_task):
-    def __init__(self, task_id, runner_obj, resources=[], server_info=None):
+    def __init__(self, task_id, runner_obj, version, resources=[], server_info=None):
         super(Leveltest, self).__init__(task_id, runner_obj)
         self.resources = resources
         self.server_info = server_info
         self.token = None
         self.success_levels = []
+        self.version = version
     
     def run(self):
         '''
@@ -188,7 +189,7 @@ class Leveltest(abstract_test_task):
         if step_obj:
             push_step2task(self.task_id, step_obj)
             #get sequence resource
-            sequence_resource_list = fhir_test_cases.get_resource_correct_cases("Sequence")
+            sequence_resource_list = fhir_test_cases.get_resource_correct_cases(self.version, "Sequence")
             isSuccessful = False
             if sequence_resource_list and len(sequence_resource_list) > 0:
                 sequence_resource = sequence_resource_list[0]
@@ -257,8 +258,8 @@ class Leveltest(abstract_test_task):
         write a resource to server
         '''
         #get test cases
-        correct_cases = fhir_test_cases.get_resource_correct_cases(resource_type)
-        wrong_cases = fhir_test_cases.get_resource_wrong_cases(resource_type)
+        correct_cases = fhir_test_cases.get_resource_correct_cases(self.version, resource_type)
+        wrong_cases = fhir_test_cases.get_resource_wrong_cases(self.version, resource_type)
         res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
         isCorrectPassed = True

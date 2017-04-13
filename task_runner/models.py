@@ -46,9 +46,21 @@ class FHIRServer(Document):
         'strict': False
     }
 
+class FHIRVersion(Document):
+    name = StringField()
+    number = StringField()
+    url = StringField()
+    index_url = StringField()
+
+    meta = {
+        'collection': 'fhirversions',
+        'strict': False
+    }
+
 class Resource(Document):
     name = StringField(required=True, max_length=256)
     type_code = IntField()
+    version = ReferenceField(FHIRVersion)
     meta = {
         'collection': 'resources',
         'strict': False
@@ -101,6 +113,8 @@ class Result(Document):
         'strict': False
     }
 
+
+
 class Task(Document):
     target_server = ReferenceField(FHIRServer, required=False)
     task_parameters = StringField()
@@ -111,6 +125,7 @@ class Task(Document):
     steps = ListField(ReferenceField(Step))
     is_processed = BooleanField(default=False)
     result = ReferenceField(Result)
+    fhir_version = ReferenceField(FHIRVersion)
     meta = {
         'collection': 'tasks',
         'strict': False

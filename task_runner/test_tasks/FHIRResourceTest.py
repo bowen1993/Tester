@@ -6,11 +6,12 @@ import os
 import json
 
 class FHIRResourceTest(abstract_test_task):
-    def __init__(self, task_id, runner_obj, resources=[], server_info=None):
+    def __init__(self, task_id, runner_obj, version, resources=[], server_info=None):
         super(FHIRResourceTest, self).__init__(task_id, runner_obj)
         self.resources = resources
         self.server_info = server_info
         self.token = None
+        self.version = version
 
     def run(self):
         '''
@@ -92,8 +93,8 @@ class FHIRResourceTest(abstract_test_task):
         write a resource to server
         '''
         #get test cases
-        correct_cases = fhir_test_cases.get_resource_correct_cases(resource_type)
-        wrong_cases = fhir_test_cases.get_resource_wrong_cases(resource_type)
+        correct_cases = fhir_test_cases.get_resource_correct_cases(self.version, resource_type)
+        wrong_cases = fhir_test_cases.get_resource_wrong_cases(self.version, resource_type)
         res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
         # TODO: test with correct/wrong cases into methods

@@ -1,24 +1,47 @@
 from .FHIR_Generator import Generator
 from .genomics_test_generator.fhir_genomics_test_gene import *
 import os
-version = "3.0.0"
 
 spec_basepath = os.path.join(os.getcwd(), 'task_runner/resources/spec/')
-def get_resource_correct_cases(resource_type):
+def get_resource_correct_cases(version, resource_type):
     '''
     get correct resource objects for a certain resource type
     '''
     generator = Generator()
     generator.load_definition(version, resource_type)
-    return generator.correct_cases()
+    raw_cases = generator.correct_cases('nothing')
+    cases = []
+    if raw_cases:
+        for raw_case in raw_cases:
+            cases.append(raw_case['testcase'])
+    return cases
 
-def get_resource_wrong_cases(resource_type):
+def get_resource_basic_cases(version, resource_type):
+    '''
+    get resource withour reference
+    '''
+    generator = Generator()
+    generator.load_definition(version, resource_type)
+    raw_cases = generator.correct_cases('noreference')
+    cases = []
+    if raw_cases:
+        for raw_case in raw_cases:
+            cases.append(raw_case['testcase'])
+    return cases
+
+
+def get_resource_wrong_cases(version, resource_type):
     '''
     get wrong resource objects for a certain resource type
     '''
     generator = Generator()
     generator.load_definition(version, resource_type)
-    return generator.wrong_cases()
+    raw_cases = generator.wrong_cases()
+    cases = []
+    if raw_cases:
+        for raw_case  in raw_cases:
+            cases.append(raw_case['testcase']['testcase'])
+    return cases
 
 #temp version
 
