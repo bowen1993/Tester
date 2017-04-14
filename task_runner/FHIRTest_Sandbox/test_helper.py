@@ -44,11 +44,21 @@ def create_pre_resources(url, access_token=None):
                     id_dict[resource_name] = ids
     return create_result, id_dict
 
-def set_reference(resource_obj, server_url, access_token=None, id_dict={}):
+def create_non_reference_resource(resource_name, server_url, version, access_token=None):
+    non_reference_resource = fhir_test_cases.get_resource_basic_cases(version, resource_name)
+    if len(non_reference_resource) > 0:
+        print non_reference_resource[0]
+        isSuccessful, response = basic_fhir_operations.create_fhir_resource(server_url, resource_name, non_reference_resource[0])
+        isSuccessful, ids = basic_fhir_operations.get_resources_ids(url, resource_name, access_token)
+        if ids:
+            return ids
+    return []
+
+
+def set_reference(resource_obj, server_url, version, access_token=None, id_dict={}):
     '''
     resource reference id correction
     '''
-    print resource_obj, server_url
     if not isinstance(resource_obj, dict):
         return resource_obj
     for key in resource_obj:
@@ -59,14 +69,19 @@ def set_reference(resource_obj, server_url, access_token=None, id_dict={}):
                 reference_type = item[:item.find('/')]
                 print reference_type
                 if reference_type in id_dict:
+                    print "%s id in id dict" % reference_type
+                    print (reference_type, id_dict[reference_type][0])
                     resource_obj[key] = '%s/%s' % (reference_type, id_dict[reference_type][0])
                 else:
+                    print "%s not in dict" % reference_type
                     #retrive from server
                     isSuccess, id_list = basic_fhir_operations.get_resources_ids(server_url, reference_type, access_token)
-                    print id_list
+                    if len(id_list) <= 0:
+                        id_list = create_non_reference_resource(reference_type, server_url, version, access_token=None)
                     if len(id_list) > 0:
                         resource_obj[key] = '%s/%s' % (reference_type, id_list[0])
                         id_dict[reference_type] = id_list
+                        resource_obj[key] = '%s/%s' % (reference_type, id_dict[reference_type][0])
             else:
                 continue
         if isinstance(item, list):

@@ -12,6 +12,7 @@ class FHIRResourceTest(abstract_test_task):
         self.server_info = server_info
         self.token = None
         self.version = version
+        self.id_dict = {}
 
     def run(self):
         '''
@@ -95,13 +96,13 @@ class FHIRResourceTest(abstract_test_task):
         #get test cases
         correct_cases = fhir_test_cases.get_resource_correct_cases(self.version, resource_type)
         wrong_cases = fhir_test_cases.get_resource_wrong_cases(self.version, resource_type)
-        res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
+        #res, self.id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
         # TODO: test with correct/wrong cases into methods
         isCorrectPassed = True
         if correct_cases:
             for case in correct_cases:
-                case = test_helper.set_reference(case, self.server_info['url'], self.token, id_dict)
+                case = test_helper.set_reference(case, self.server_info['url'], self.version, self.token, self.id_dict)
                 isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
                 if not isSuccessful:
                     isCorrectPassed = False
@@ -130,7 +131,7 @@ class FHIRResourceTest(abstract_test_task):
         isWrongPassed = True
         if wrong_cases:
             for case in wrong_cases:
-                case = test_helper.set_reference(case, self.server_info['url'], self.token)
+                case = test_helper.set_reference(case, self.server_info['url'], self.version, self.token, self.id_dict)
                 isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
                 if isSuccessful:
                     isWrongPassed = False

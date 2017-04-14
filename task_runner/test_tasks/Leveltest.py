@@ -54,6 +54,7 @@ class Leveltest(abstract_test_task):
         self.token = None
         self.success_levels = []
         self.version = version
+        self.id_dict = {}
     
     def run(self):
         '''
@@ -193,7 +194,7 @@ class Leveltest(abstract_test_task):
             isSuccessful = False
             if sequence_resource_list and len(sequence_resource_list) > 0:
                 sequence_resource = sequence_resource_list[0]
-                sequence_resource = test_helper.set_reference(sequence_resource, self.server_info['url'], self.token)
+                sequence_resource = test_helper.set_reference(sequence_resource, self.server_info['url'], self.version, self.token, self.id_dict)
                 sequence_resource['repository'] = gene_repository
                 isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"], "Sequence", sequence_resource, self.token)
                 if isSuccessful:
@@ -260,12 +261,12 @@ class Leveltest(abstract_test_task):
         #get test cases
         correct_cases = fhir_test_cases.get_resource_correct_cases(self.version, resource_type)
         wrong_cases = fhir_test_cases.get_resource_wrong_cases(self.version, resource_type)
-        res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
+        #res, id_dict = test_helper.create_pre_resources(self.server_info['url'], self.token)
         # test with correct cases
         isCorrectPassed = True
         if correct_cases:
             for case in correct_cases:
-                case = test_helper.set_reference(case, self.server_info['url'], self.token, id_dict)
+                case = test_helper.set_reference(case, self.server_info['url'], self.version, self.token, self.id_dict)
                 isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
                 if not isSuccessful:
                     isCorrectPassed = False
@@ -294,7 +295,7 @@ class Leveltest(abstract_test_task):
         isWrongPassed = True
         if wrong_cases:
             for case in wrong_cases:
-                case = test_helper.set_reference(case, self.server_info['url'], self.token)
+                case = test_helper.set_reference(case, self.server_info['url'], self.version, self.token, self.id_dict)
                 isSuccessful, response_json = basic_fhir_operations.create_fhir_resource(self.server_info["url"],resource_type, case, self.token)
                 if isSuccessful:
                     isWrongPassed = False
