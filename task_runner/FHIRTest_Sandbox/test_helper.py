@@ -49,7 +49,7 @@ def create_non_reference_resource(resource_name, server_url, version, access_tok
     if len(non_reference_resource) > 0:
         print non_reference_resource[0]
         isSuccessful, response = basic_fhir_operations.create_fhir_resource(server_url, resource_name, non_reference_resource[0])
-        isSuccessful, ids = basic_fhir_operations.get_resources_ids(url, resource_name, access_token)
+        isSuccessful, ids = basic_fhir_operations.get_resources_ids(server_url, resource_name, access_token)
         if ids:
             return ids
     return []
@@ -84,11 +84,13 @@ def set_reference(resource_obj, server_url, version, access_token=None, id_dict=
                         resource_obj[key] = '%s/%s' % (reference_type, id_dict[reference_type][0])
             else:
                 continue
-        if isinstance(item, list):
+        elif isinstance(item, list):
             for element in item:
                 element = set_reference(element, server_url, access_token, id_dict)
-        if isinstance(item, dict):
+        elif isinstance(item, dict):
             item = set_reference(item, server_url, access_token, id_dict)
+        else:
+            print item
     return resource_obj
 
 def read_repo(resource_type, resource_id, url, ga4gh_url, access_token):
