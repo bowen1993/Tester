@@ -27,7 +27,7 @@ class FHIRResourceTest(abstract_test_task):
             return
         
         if self.server_info["is_auth_required"]:
-            self.token = basic_fhir_operations.basicOAuth(self.server_info["auth_info"], self.server_info["auth_url"])
+            self.token = basic_fhir_operations.basicOAuth(self.server_info["auth_info"])
         
         isAllSuccess = True
         for resource in self.resources:

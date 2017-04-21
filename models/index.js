@@ -32,6 +32,28 @@ let ServerAuthInfo = um.model.createModel('ServerAuthInfo', {
     auth_url: Text()
 });
 
+let Scope = um.model.createModel('Scope', {
+    role:Text(),
+    resource: Text(),
+    operation: Text()
+});
+
+let App = um.model.createModel('App', {
+    name: Text(),
+    author: UObject({
+        type: 'User'
+    }),
+    client_id:Text(),
+    launch_uri: Text(),
+    redirect_uri: Text(),
+    logo_file: Text(),
+    is_stand_alone: Bool(),
+    is_patient_required: Bool(),
+    scopes:UObjectArray({
+        type:'Scope'
+    })  
+});
+
 let FHIRServer = um.model.createModel('FHIRServer', {
     name: Text(),
     url: Text(),
@@ -136,12 +158,16 @@ let ResultDao = session.getDao(Result);
 let ServerAuthInfoDao = session.getDao(ServerAuthInfo);
 let ServerAuthScopeDao = session.getDao(ServerAuthScope);
 let FHIRVersionDao = session.getDao(FHIRVersion);
+let AppDao = session.getDao(App);
+let ScopeDao = session.getDao(Scope);
 
 module.exports = {
+    App,
     User,
     FHIRServer,
     Resource,
     Level,
+    Scope,
     Case,
     Step,
     Task,
@@ -149,10 +175,12 @@ module.exports = {
     Result,
     ServerAuthInfo,
     ServerAuthScope,
+    AppDao,
     UserDao,
     FHIRServerDao,
     ResourceDao,
     LevelDao,
+    ScopeDao,
     CaseDao,
     StepDao,
     TaskDao,

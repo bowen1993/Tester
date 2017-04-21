@@ -68,7 +68,7 @@ class Leveltest(abstract_test_task):
             self.runner_obj.notify_completed(self.task_id)
             return
         if self.server_info["is_auth_required"]:
-            self.token = basic_fhir_operations.basicOAuth(self.server_info["auth_info"], self.server_info["auth_url"])
+            self.token = basic_fhir_operations.basicOAuth(self.server_info["auth_info"])
         for level in self.resources:
             test_method_name = "test_%s" % level
             getattr(self, test_method_name)()

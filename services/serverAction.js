@@ -27,16 +27,17 @@ var add_new_server = function(server_info){
         });
         try{
             ServerAuthInfoDao.create(new_server_auth);
-            for( var scope in server_info.scopes ){
+            for( var scope in server_info.auth_info.scopes ){
+                console.log(server_info.auth_info.scopes[scope]);
                 var new_server_scope = new ServerAuthScope({
-                    name: server_info.auth_info.scopes[scope]
+                    name: server_info.auth_info.scopes[scope].name
                 });
                 ServerAuthScopeDao.create(new_server_scope)
                 ServerAuthInfoDao.update({
                     id:new_server_auth.id
                 },{
                     $push:{
-                        scopes:new_server_scope.id
+                        scopes:new_server_scope
                     }
                 });
             }
