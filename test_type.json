@@ -153,8 +153,8 @@
     ],
     "servers":[
         {
-            "name": "Wildfhir STU3",
-            "url": "http://wildfhir.aegis.net/fhir1-6-0",
+            "name": "Wildfhir STU3 1.8.0",
+            "url": "http://wildfhir.aegis.net/fhir1-8-0",
             "is_auth_required": false,
             "is_deleted": false
         },
