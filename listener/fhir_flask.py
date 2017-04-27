@@ -19,11 +19,12 @@ def validater():
 	if 'resourceType' in data:
 		datatype = data['resourceType']
 		version = request_json['version']
-		is_validate, extensions = fhir_validator.run_validate(datatype, data, version)
+		is_validate, extensions, errors = fhir_validator.run_validate(datatype, data, version)
 	res = jsonify(
 		{
 			"is_validate": is_validate,
-			"extensions": extensions
+			"extensions": extensions,
+			"errors": errors
 		}
 		)
 	return res
