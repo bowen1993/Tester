@@ -56,24 +56,105 @@ var add_new_server = function(server_info){
     return true;
 }
 
-var update_server = function(server_id, server_info, server_info){
+var update_server = function(server_id, server_info){
     // check and update auth info first
-    if( server_info.is_auth_required ){
-        //update or create auth info
-        if( server_info.auth_info.id ){
-            // update server auth info
-            ///update scope first
-            if( server_info.auth_info.scopes.length > 0 ){
-                server_info.auth_info.scopes.map(scope_info => {
-                    
+    var is_successful = false;
+    var server_obj = get_server_obj(server_id);
+    if( server_obj ){
+        // update basic infos
+        ServerDao.update({
+            id:server_id
+        },{
+            name:server_info.name,
+            url:server_info.url,
+            is_auth_required:server_info.is_auth_required,
+        });
+        // update auth info
+        if( server_info.is_auth_required ){
+            var auth_obj = null;
+            // create auth object if not exists
+            if( server_obj.auth_info == null ){
+                //create new auth
+                console.log("creating new auth")
+                auth_obj = new ServerAuthInfo({
+                    client_id: server_info.auth_info.client_id,
+                    redirect_uri: server_info.auth_info.redirect_uri,
+                    auth_url:server_info.auth_info.auth_url,
+                    token_url:server_info.auth_info.token_url
                 });
+                try{
+                    ServerAuthInfoDao.create(auth_obj);
+                    ServerDao.update({
+                        id:server_id
+                    },{
+                        $push:{
+                            auth_info:auth_obj
+                        }
+                    });
+                }catch( err ){
+                    console.log(err);
+                    return false;
+                }
+            } else {
+                console.log("updating auth");
+                auth_obj = server_obj.auth_info
+                try{
+                    ServerAuthInfoDao.update(
+                        {id:auth_obj.id},{
+                            client_id: server_info.auth_info.client_id,
+                            redirect_uri: server_info.auth_info.redirect_uri,
+                            auth_url:server_info.auth_info.auth_url,
+                            token_url:server_info.auth_info.token_url
+                    });
+                } catch( err ){
+                    console.log(err);
+                    return false;
+                }  
             }
-            ServerAuthInfoDao.update({
-                id:server_info.auth_info.id
-            },server_info.auth_info)
+            console.log("basic auth updated");
+            try{
+                ServerAuthInfoDao.update({
+                    id:auth_obj.id
+                },{
+                    $unset:{
+                        scopes:[]
+                    }
+                });
+            }catch( err ){
+                console.log(err);
+                return false;
+            }
+            console.log("scope removed");
+            //update scopes
+            if( server_info.auth_info.scopes && server_info.auth_info.scopes.length > 0 ){
+                server_info.auth_info.scopes.map(scope_info => {
+                            var new_server_scope = new ServerAuthScope({
+                                name: scope_info.name
+                            });
+                            ServerAuthScopeDao.create(new_server_scope);
+                            ServerAuthInfoDao.update({
+                                id:auth_obj.id
+                            },{
+                                $push:{
+                                    scopes:new_server_scope
+                                }
+                            });
+                        });
+            }
         }else{
-            // create new auth info
+            if( server_obj.auth_info != null ){
+                ServerDao.update({
+                    id:server_id
+                },{
+                    $unset:{
+                        auth_info:{}
+                    }
+                })
+            }
         }
+        return true
+    }else{
+        return false
     }
 }
 
@@ -140,5 +221,6 @@ module.exports = {
     delete_server,
     get_server_obj,
     get_server_info,
+    update_server,
     ping_server
 }

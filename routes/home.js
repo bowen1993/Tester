@@ -46,6 +46,15 @@ router.post('/ping', function(req, res, next){
     serverAction.ping_server(url, res);
 });
 
+router.post('/update_server', function(req, res, next){
+    var server_id = req.body.id;
+    var server_info = req.body.server_info;
+    var isSuccessful = serverAction.update_server(server_id, server_info)
+    res.json({
+        isSuccessful:isSuccessful
+    });
+})
+
 router.post('/deleteServer', function(req, res, next) {
     var server_id = req.body.id;
     var isSuccessful = delete_server(server_id);
