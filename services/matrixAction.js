@@ -68,7 +68,7 @@ var form_matrix = function(ttype,ttime){
         datetime_obj = ttime.toUTCString();
     }
     let server_list = FHIRServerDao.find({
-        is_delete:false
+        is_deleted:false,
     }); 
     var server_index = 0;
     server_list.forEach(obj => {
