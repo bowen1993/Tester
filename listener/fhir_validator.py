@@ -39,6 +39,7 @@ FHIR_PRIMITIVE_VALIDATORS = {
     'instant': validate_by_regex(INSTANT_RE),
     'integer': validate_by_instance(int),
     'positiveInt': validate_by_instance(int),
+    'unsignedInt': validate_by_instance(int),
     'oid': validate_by_regex(OID_RE),
     'string': validate_by_instance(unicode),
     'uri': validate_by_regex(URI_RE),
@@ -316,6 +317,8 @@ def get_resource_extensions(data):
 def parse(datatype, data, parent_path, version=1):
     #get datatype spec
     spec = None
+    if 'text' in data:
+        del data['text']
     errors = []
     is_valid_element = True
     spec = get_resource_spec(datatype, version)
