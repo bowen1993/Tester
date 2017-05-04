@@ -17,6 +17,10 @@ INSTANT_RE = re.compile(r'[1-9][0-9]{3}-.+T[^.]+(Z|[+-].+)')
 OID_RE = re.compile(r'urn:oid:\d+\.\d+\.\d+\.\d+')
 UUID_RE = re.compile(r'urn:uuid:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}')
 URI_RE = re.compile(r'''(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?]))''')
+DECIMAL_RE = re.compile(r'^\d*\.?\d*$')
+
+lower_first = lambda s: s[:1].lower() + s[1:] if s else ''
+remove_type_path = lambda s: s[s.find('.')+1:] if '.' in s else s
 
 def validate_by_regex(regex):
     return lambda data: regex.match(str(data)) is not None
@@ -30,7 +34,7 @@ FHIR_PRIMITIVE_VALIDATORS = {
     'boolean': validate_by_instance(bool),
     'date': validate_by_regex(DATE_RE),
     'dateTime': validate_by_regex(DATETIME_RE),
-    'decimal': validate_by_instance(float),
+    'decimal': validate_by_regex(DECIMAL_RE),
     'id': validate_by_regex(ID_RE),
     'instant': validate_by_regex(INSTANT_RE),
     'integer': validate_by_instance(int),
@@ -47,6 +51,10 @@ FHIR_PRIMITIVE_INIT = {
     'decimal': float,
     'integer': int
 }
+
+FHIR_PRIMITIVE_TYPES = ['base64Binary', 'boolean', 'date', 'dateTime', \
+    'decimal', 'id', 'instant', 'integer', 'positiveInt', 'oid', \
+    'string', 'uri', 'uuid', 'code', 'BackboneElement']
 
 def validate_reference(element, reference_types):
     #get reference in element
@@ -89,12 +97,14 @@ class FHIRElement(object):
         return self.path
 
     def validate(self, data):
+        if len(self.elem_types) == 0:
+            return True, self.errors
         path_elems = self.path.split('.')
         is_validate = True
         if len(path_elems) == 1:
             is_validate = True
             return True, self.errors
-        elem_name = path_elems[-1]
+        element_name = path_elems[-1]
         path_elems = path_elems[1:-1]
         elem_parents = []
         elem_ancestors = []
@@ -113,88 +123,125 @@ class FHIRElement(object):
 
         for parent in elem_parents:
             if not isinstance(parent, dict):
-                print 'error: ',
+                print 'error: '
+                print parent
                 self.errors.append({
                     "error": "Not a valid resource",
                     "path": self.get_element_path()
                 })
                 return False, self.errors
-
-            elem = parent.get(elem_name)
-
-            if elem is None:
+            ele_names = []
+            if '[x]' in element_name:
+                for ele_type in self.elem_types:
+                    elem_type_name = element_name.replace('[x]', ele_type)
+                    ele_names.append((elem_type_name, ele_type))
+            else:
+                ele_names = [(element_name,self.elem_types[0])]
+            if len(ele_names) > 1:
+                elem = []
+                for elname in ele_names:
+                    if elname[0] in parent:
+                        elem.append((parent.get(elname[0]), elname[1]))
+            else:
+                elem = (parent.get(ele_names[0][0]), ele_names[0][1])
+            if len(elem) == 0 or elem[0] is None:
                 if self.min_occurs > 0:
                     self.errors.append({
-                        "error": "Required Element Missing",
+                        "error": "Required Element %s Missing" % element_name,
                         "path": self.get_element_path()
                     })
                     print 'required missing'
                     is_validate = False
                 continue
-
             if isinstance(elem, list):
-                if self.max_occurs != "*":
+                if self.max_occurs != "*" and len(elem) > 1:
                     self.errors.append({
-                        "error": "Element should not be an array",
+                        "error": "Element should not be more than one",
                         "path": self.get_element_path()
                     })
-                    print 'too many'
+                    print 'too many',
+                    print self.get_element_path(),
+                    print elem
+                    
                     is_validate = False
 
                 elems = elem
                 for i, elem in enumerate(elems):
-                    if not self.validate_elem(elem):
+                    if not self.validate_elem(elem[0], elem[1]):
                         is_validate = False
-
-            elif not self.validate_elem(elem):
+            elif isinstance(elem[0], list):
+                if self.max_occurs != "*":
+                    self.errors.append({
+                        "error": "Element should not be more than one",
+                        "path": self.get_element_path()
+                    })
+                    print 'too many',
+                    print self.get_element_path(),
+                    print elem
+                    is_validate = False
+                elems = elem[0]
+                for i, ele in enumerate(elems):
+                    if not self.validate_elem(ele, elem[1]):
+                        is_validate = False
+                
+            elif not self.validate_elem(elem[0], elem[1]):
 
                 is_validate = False
 
             elif self.max_occurs == '*':
                 # in this case, the elem itself is correct, with a cardinality
                 # or '*' but stored as a single item
-                parent[elem_name] = [elem]
+                parent[element_name] = [elem[0]]
 
+            for elname in ele_names:
+                if elname[0] in parent:
+                    if isinstance(parent[elname[0]], dict) or isinstance(parent[elname[0]], list):
+                        if len(parent[elname[0]]) == 0:
+                            del parent[elname[0]]
+                    else:
+                        del parent[elname[0]]
         return is_validate, self.errors
 
-    def validate_elem(self, elem):
+    def validate_elem(self, elem, elem_type):
         is_elem_validate = False
-        for elem_type in self.elem_types:
-            if elem_type in FHIR_PRIMITIVE_VALIDATORS:
-                validate_func = FHIR_PRIMITIVE_VALIDATORS[elem_type]
-                if not validate_func(elem):
-                    print 'error element',
-                    self.errors.append({
-                        "error": "Element not in correct data type",
-                        "path": self.get_element_path()
-                    })
-                else:
-                    is_elem_validate = True
-            
-            elif elem_type == "Reference":
-                if not validate_reference(elem, self.reference_types):
-                    self.errors.append({
-                        "error": "Reference in Error",
-                        "path": self.get_element_path()
-                    })
-                    print 'reference error'
-                else:
-                    is_elem_validate = True
-
-            elif elem_type.lower() == 'resource' and 'resourceType' in elem:
-                elem_type = elem['resourceType']
-                valid, errors = parse(elem_type, elem)
-                self.errors.extend(errors)
-                if valid:
-                    is_elem_validate = True
-            
+        if elem_type in FHIR_PRIMITIVE_VALIDATORS:
+            print 'primitive type'
+            validate_func = FHIR_PRIMITIVE_VALIDATORS[elem_type]
+            if validate_func(elem):
+                is_elem_validate = True
+        
+        elif elem_type == "Reference":
+            print 'reference'
+            if not validate_reference(elem, self.reference_types):
+                self.errors.append({
+                    "error": "Reference in Error",
+                    "path": self.get_element_path()
+                })
+                print 'reference error'
             else:
-                # type of the element is a complex type
-                valid, errors = parse(elem_type, elem)
-                self.errors.extend(errors)
-                if valid:
-                    is_elem_validate = True
+                is_elem_validate = True
 
+        elif elem_type.lower() == 'resource' and 'resourceType' in elem:
+            print 'resource type'
+            elem_type = elem['resourceType']
+            valid, errors = parse(elem_type, elem, self.get_element_path())
+            self.errors.extend(errors)
+            if valid:
+                is_elem_validate = True
+        
+        else:
+            print 'complex'
+            # type of the element is a complex type
+            valid, errors = parse(elem_type, elem, self.get_element_path())
+            self.errors.extend(errors)
+            if valid:
+                is_elem_validate = True
+        if not is_elem_validate:
+            print 'error element'
+            self.errors.append({
+                "error": "Element not in correct data type",
+                "path": self.get_element_path()
+            })
         return is_elem_validate
 
 def get_resource_spec(resourceType, version):
@@ -229,6 +276,33 @@ def get_resource_spec(resourceType, version):
     else:
         return None
 
+def get_element_types(element_obj):
+    ele_type = []
+    if 'type' in element_obj:
+        for et in element_obj['type']:
+            if 'code' not in et:
+                continue
+            ele_type.append(et['code'])
+    return ele_type
+
+def get_path_spec(resourceType, parent, version):
+    url = versions_url[version] % resourceType.lower()
+    r = requests.get(url)
+    spec_obj = []
+    if r.status_code < 400:
+        spec_json = r.json()
+        for ele in spec_json['snapshot']['element']:
+            inner_path = remove_type_path(ele['path'])
+            final_path = '%s.%s' % (parent, inner_path)
+            print final_path
+            spec_obj.append(final_path)
+            types = get_element_types(ele)
+            for ele_type in types:
+                if ele_type not in FHIR_PRIMITIVE_TYPES:
+                    print 'type: %s' % ele_type
+                    spec_obj.extend(get_path_spec(ele_type, final_path, version))
+    return spec_obj
+
 def get_resource_extensions(data):
     extension_list = []
     if 'extension' in data:
@@ -239,7 +313,7 @@ def get_resource_extensions(data):
                 extension_list.append(ext_name)
     return extension_list
 
-def parse(datatype, data, version=1):
+def parse(datatype, data, parent_path, version=1):
     #get datatype spec
     spec = None
     errors = []
@@ -261,7 +335,11 @@ def parse(datatype, data, version=1):
 def run_validate(datatype, data, version=1):
     if 'text' in data:
         del data['text']
-    is_validate, errors = parse(datatype, data, version)
+    is_validate, errors = parse(datatype, data, "%s." % datatype, version)
+    print is_validate, errors
+    if "resourceType" in data:
+        del data['resourceType']
+    print data
     extension_list = []
     if is_validate:
         extension_list = get_resource_extensions(data)
