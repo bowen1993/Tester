@@ -339,7 +339,7 @@ def get_resources(data):
     entries = []
     if 'entry' in data:
         entries = data['entry']
-    return [x['resource']['resourceType'] for x in entries]
+    return list({x['resource']['resourceType'] for x in entries})
 
 def run_validate(datatype, data, version=1):
     if 'text' in data:
