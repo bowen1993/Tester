@@ -335,15 +335,24 @@ def parse(datatype, data, parent_path, version=1):
                 is_valid_element = False
     return is_valid_element, errors
 
+def get_resources(data):
+    entries = []
+    if 'entry' in data:
+        entries = data['entry']
+    return [x['resource']['resourceType'] for x in entries]
+
 def run_validate(datatype, data, version=1):
     if 'text' in data:
         del data['text']
     is_validate, errors = parse(datatype, data, "%s." % datatype, version)
     print is_validate, errors
+    resources = []
+    if is_validate and "resourceType" in data and data['resourceType'] == 'Bundle':
+        resources = get_resources(data)
     if "resourceType" in data:
         del data['resourceType']
     print data
     extension_list = []
     if is_validate:
         extension_list = get_resource_extensions(data)
-    return is_validate, extension_list, errors
+    return is_validate, extension_list, errors, resources

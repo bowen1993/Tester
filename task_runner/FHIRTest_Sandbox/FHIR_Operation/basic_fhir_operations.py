@@ -63,8 +63,13 @@ def read_fhir_resource(server_url, resource_type, access_token=None):
     if access_token:
         headers['Authorization'] = "Bearer %s" % access_token
     status_code, response_json = basic_http_operation.send_get(resource_url, headers)
+    request_detail = {
+        'url': resource_url,
+        'method': 'GET',
+        'data': {}
+    }
     isSuccessful = status_code < 400
-    return isSuccessful, response_json
+    return isSuccessful, response_json, request_detail
 
 def read_one_resource(server_url, resource_type, resource_id, access_token=None):
     '''
@@ -120,8 +125,13 @@ def create_fhir_resource(server_url, resource_type, resource, access_token=None)
     if access_token:
         headers['Authorization'] = "Bearer %s" % access_token
     status_code, response_body = basic_http_operation.send_post(resource_url, headers, resource)
+    request_detail = {
+        'url': resource_url,
+        'method': 'POST',
+        'data': resource
+    }
     isSuccessful = status_code < 400
-    return isSuccessful, response_body
+    return isSuccessful, response_body, request_detail
 
 
 def update_fhir_resource(server_url, updated_resource, resource_id, access_token=None):
