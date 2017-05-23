@@ -3,7 +3,6 @@ import re
 import os
 import json
 import requests
-
 versions_url = {
     1 : "http://hl7.org/fhir/2017Jan/%s.profile.json",
     2 : "http://hl7.org/fhir/STU3/%s.profile.json"
@@ -11,13 +10,13 @@ versions_url = {
 
 
 DATE_RE = re.compile(r'-?([1-9][0-9]{3}|0[0-9]{3})(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?')
-DATETIME_RE = re.compile(r'-?([1-9][0-9]{3}|0[0-9]{3})(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?)?)?)?')
+DATETIME_RE = re.compile(r'^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$')
 ID_RE = re.compile(r'[a-z0-9\-\.]{1,36}')
 INSTANT_RE = re.compile(r'[1-9][0-9]{3}-.+T[^.]+(Z|[+-].+)')
 OID_RE = re.compile(r'urn:oid:\d+\.\d+\.\d+\.\d+')
 UUID_RE = re.compile(r'urn:uuid:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}')
 URI_RE = re.compile(r'''(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?]))''')
-DECIMAL_RE = re.compile(r'^\d*\.?\d*$')
+DECIMAL_RE = re.compile(r'^[+-]?\d*\.?\d*$')
 
 lower_first = lambda s: s[:1].lower() + s[1:] if s else ''
 remove_type_path = lambda s: s[s.find('.')+1:] if '.' in s else s
@@ -60,17 +59,18 @@ FHIR_PRIMITIVE_TYPES = ['base64Binary', 'boolean', 'date', 'dateTime', \
 def validate_reference(element, reference_types):
     #get reference in element
     if 'reference' not in  element:
+        print element
         return False
-    
     ref_type = element["reference"][:element["reference"].find('/')]
     return ref_type in reference_types
         
 
 class FHIRElement(object):
 
-    def __init__(self, spec):
+    def __init__(self, spec, version):
         self.path = spec['path']
         self.errors = []
+        self.version = version
         self.elem_types = []
         if 'type' in spec['definition']:
             if isinstance(spec['definition']['type'], list):
@@ -124,8 +124,8 @@ class FHIRElement(object):
 
         for parent in elem_parents:
             if not isinstance(parent, dict):
-                print 'error: '
-                print parent
+                # print 'error: '
+                # print parent
                 self.errors.append({
                     "error": "Not a valid resource",
                     "path": self.get_element_path()
@@ -151,7 +151,7 @@ class FHIRElement(object):
                         "error": "Required Element %s Missing" % element_name,
                         "path": self.get_element_path()
                     })
-                    print 'required missing'
+                    # print 'required missing'
                     is_validate = False
                 continue
             if isinstance(elem, list):
@@ -160,12 +160,10 @@ class FHIRElement(object):
                         "error": "Element should not be more than one",
                         "path": self.get_element_path()
                     })
-                    print 'too many',
-                    print self.get_element_path(),
-                    print elem
-                    
+                    # print 'too many',
+                    # print self.get_element_path(),
+                    # print elem
                     is_validate = False
-
                 elems = elem
                 for i, elem in enumerate(elems):
                     if not self.validate_elem(elem[0], elem[1]):
@@ -176,15 +174,14 @@ class FHIRElement(object):
                         "error": "Element should not be more than one",
                         "path": self.get_element_path()
                     })
-                    print 'too many',
-                    print self.get_element_path(),
-                    print elem
+                    # print 'too many',
+                    # print self.get_element_path(),
+                    # print elem
                     is_validate = False
                 elems = elem[0]
                 for i, ele in enumerate(elems):
                     if not self.validate_elem(ele, elem[1]):
                         is_validate = False
-                
             elif not self.validate_elem(elem[0], elem[1]):
 
                 is_validate = False
@@ -206,46 +203,76 @@ class FHIRElement(object):
     def validate_elem(self, elem, elem_type):
         is_elem_validate = False
         if elem_type in FHIR_PRIMITIVE_VALIDATORS:
-            print 'primitive type'
             validate_func = FHIR_PRIMITIVE_VALIDATORS[elem_type]
             if validate_func(elem):
                 is_elem_validate = True
-        
         elif elem_type == "Reference":
-            print 'reference'
+            # print 'reference'
             if not validate_reference(elem, self.reference_types):
                 self.errors.append({
                     "error": "Reference in Error",
                     "path": self.get_element_path()
                 })
-                print 'reference error'
+                # print 'reference error'
             else:
                 is_elem_validate = True
 
         elif elem_type.lower() == 'resource' and 'resourceType' in elem:
-            print 'resource type'
+            # print 'resource type'
             elem_type = elem['resourceType']
-            valid, errors = parse(elem_type, elem, self.get_element_path())
+            valid, errors = parse(elem_type, elem, self.get_element_path(), self.version)
             self.errors.extend(errors)
             if valid:
                 is_elem_validate = True
-        
         else:
-            print 'complex'
+            # print 'complex'
             # type of the element is a complex type
-            valid, errors = parse(elem_type, elem, self.get_element_path())
+            valid, errors = parse(elem_type, elem, self.get_element_path(), self.version)
             self.errors.extend(errors)
             if valid:
                 is_elem_validate = True
         if not is_elem_validate:
-            print 'error element'
+            # print 'error element'
             self.errors.append({
                 "error": "Element not in correct data type",
                 "path": self.get_element_path()
             })
         return is_elem_validate
 
-def get_resource_spec(resourceType, version):
+def create_foleder(version):
+    base_path = 'specs/'
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+    if not os.path.exists('%s%d/' % (base_path, version)):
+        os.makedirs('%s%d/' % (base_path, version))
+    base_path += str(version) + '/'
+    return base_path
+
+def save_spec(spec_obj, resourceType, version):
+    # print 'saving spec %d %s' % (version, resourceType)
+    version_path = create_foleder(version)
+    filename = '%s.json' % resourceType
+    file_obj = open('%s%s' % (version_path, filename), 'w')
+    json.dump(spec_obj, file_obj)
+    file_obj.close()
+
+def is_spec_exists(resourceType, version):
+    filepath = 'specs/%d/%s.json' % (version, resourceType)
+    return os.path.isfile(filepath)
+
+def get_resource_spec_from_file(resourceType, version):
+    filepath = 'specs/%d/%s.json' % (version, resourceType)
+    file_obj = open(filepath, 'r')
+    spec_obj = None
+    try:
+        spec_obj = json.load(file_obj)
+    except:
+        pass
+    finally:
+        file_obj.close()
+    return spec_obj
+
+def get_resource_spec_from_url(resourceType, version):
     url = versions_url[version] % resourceType.lower()
     r = requests.get(url)
     if r.status_code < 400:
@@ -269,13 +296,21 @@ def get_resource_spec(resourceType, version):
                         continue
                     ele_type.append(et['code'])
                     if "Reference" == et['code'] and 'targetProfile' in et:
-                        refs.append( et['targetProfile'][et['targetProfile'].rindex('/')+1:])
+                        refs.append(et['targetProfile'][et['targetProfile'].rindex('/')+1:])
                 new_ele['definition']['type'] = list(set(ele_type))
                 new_ele['definition']['reference_type'] = list(set(refs))
             spec_obj['elements'].append(new_ele)
+        save_spec(spec_obj, resourceType, version)
         return spec_obj
     else:
         return None
+
+def get_resource_spec(resourceType, version):
+    if is_spec_exists(resourceType, version):
+        spec_obj = get_resource_spec_from_file(resourceType, version)
+    else:
+        spec_obj = get_resource_spec_from_url(resourceType, version)
+    return spec_obj
 
 def get_element_types(element_obj):
     ele_type = []
@@ -295,7 +330,6 @@ def get_path_spec(resourceType, parent, version):
         for ele in spec_json['snapshot']['element']:
             inner_path = remove_type_path(ele['path'])
             final_path = '%s.%s' % (parent, inner_path)
-            print final_path
             spec_obj.append(final_path)
             types = get_element_types(ele)
             for ele_type in types:
@@ -326,7 +360,7 @@ def parse(datatype, data, parent_path, version=1):
         print 'spec none'
         return False, errors
     else:
-        elements = [FHIRElement(element_spec)
+        elements = [FHIRElement(element_spec, version)
                     for element_spec in spec['elements']]
         for element in elements:
             is_valid, e = element.validate(data)
@@ -345,13 +379,11 @@ def run_validate(datatype, data, version=1):
     if 'text' in data:
         del data['text']
     is_validate, errors = parse(datatype, data, "%s." % datatype, version)
-    print is_validate, errors
     resources = []
     if is_validate and "resourceType" in data and data['resourceType'] == 'Bundle':
         resources = get_resources(data)
     if "resourceType" in data:
         del data['resourceType']
-    print data
     extension_list = []
     if is_validate:
         extension_list = get_resource_extensions(data)
